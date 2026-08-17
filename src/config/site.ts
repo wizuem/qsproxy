@@ -50,16 +50,31 @@ export const contactConfig = {
 };
 
 /**
- * Proxy page presets. `url` uses {{target}} as the placeholder for the
- * encoded destination; the built-in option fetches through this site.
+ * Quantum Browser configuration. Proxy presets use {{target}} as the
+ * placeholder for the encoded destination URL; the built-in option fetches
+ * directly through this site's own server.
  */
 export const proxyConfig = {
-  heading: "Quantum Proxy",
-  subheading: "Route any page through a proxy of your choice.",
-  defaultTarget: "https://example.com",
+  heading: "Quantum Browser",
+  subheading: "A private, themeable browser that renders the web through your chosen proxy.",
+  homepage: "https://example.com",
   presets: [
     { id: "internal", label: "Quantum Proxy (built-in)", url: "" },
     { id: "jina", label: "Reader (text-only)", url: "https://r.jina.ai/{{target}}" },
     { id: "allorigins", label: "AllOrigins", url: "https://api.allorigins.win/raw?url={{target}}" },
+    { id: "corsproxy", label: "CorsProxy.io", url: "https://corsproxy.io/?{{target}}" },
+  ],
+  searchEngines: [
+    { id: "duckduckgo", label: "DuckDuckGo", url: "https://duckduckgo.com/html/?q={{query}}" },
+    { id: "bing", label: "Bing", url: "https://www.bing.com/search?q={{query}}" },
+    { id: "wikipedia", label: "Wikipedia", url: "https://en.wikipedia.org/w/index.php?search={{query}}" },
+  ],
+  quickLinks: [
+    { label: "Wikipedia", url: "https://en.wikipedia.org" },
+    { label: "Hacker News", url: "https://news.ycombinator.com" },
+    { label: "DuckDuckGo", url: "https://duckduckgo.com/html/?q=quantum+services" },
+    { label: "MDN Web Docs", url: "https://developer.mozilla.org" },
+    { label: "Example.com", url: "https://example.com" },
+    { label: "Project Gutenberg", url: "https://www.gutenberg.org" },
   ],
 };
