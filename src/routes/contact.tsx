@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,10 +86,6 @@ function ContactPage() {
               <a href={`mailto:${siteConfig.email}`} className="hover:text-primary">
                 {siteConfig.email}
               </a>
-            </li>
-            <li className="flex items-center gap-3">
-              <Phone className="size-4 text-primary" />
-              <span className="text-muted-foreground">{siteConfig.phone}</span>
             </li>
             <li className="flex items-center gap-3">
               <MapPin className="size-4 text-primary" />

@@ -7,8 +7,7 @@ export const siteConfig = {
   tagline: "Infrastructure at the speed of light",
   description:
     "Quantum Services builds fast, private network infrastructure — secure proxying, edge delivery and hands-on support.",
-  email: "hello@quantumservices.io",
-  phone: "+1 (555) 018-2049",
+  email: "quantum services.devs@gmail.com",
   location: "Remote — worldwide",
 };
 
