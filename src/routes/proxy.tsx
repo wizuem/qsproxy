@@ -629,7 +629,7 @@ function BrowserPage() {
                   <img
                     src={logoAsset.url}
                     alt="Quantum Services logo"
-                    className="glow-ring size-16 rounded-full object-contain"
+                    className="glow-ring size-20 rounded-full object-contain ring-1 ring-border/60 bg-card/40 p-1"
                   />
                   <div>
                     <h2 className="font-display text-xl font-semibold">Start browsing privately</h2>
