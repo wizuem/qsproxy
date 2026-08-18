@@ -625,7 +625,11 @@ function BrowserPage() {
 
               {!activeTab.result && !activeTab.error && (
                 <div className="flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
-                  <div className="orbit-ring size-16 rounded-full opacity-80 blur-[1px]" />
+                  <img
+                    src={logoAsset.url}
+                    alt="Quantum Services logo"
+                    className="glow-ring size-16 rounded-full object-contain"
+                  />
                   <div>
                     <h2 className="font-display text-xl font-semibold">Start browsing privately</h2>
                     <p className="mt-2 max-w-md text-sm text-muted-foreground">
