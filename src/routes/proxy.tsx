@@ -262,7 +262,10 @@ function BrowserPage() {
         .insert({ user_id: user.id, title, url })
         .select("id,title,url")
         .single();
-      if (error) return toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
       setBookmarks((prev) => [data as Bookmark, ...prev]);
     } else {
       const entry = { id: Math.random().toString(36).slice(2), title, url };
