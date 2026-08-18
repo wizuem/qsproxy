@@ -37,6 +37,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchThroughProxy } from "@/lib/proxy.functions";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/quantum-logo.png.asset.json";
 
 export const Route = createFileRoute("/proxy")({
   head: () => ({
@@ -625,7 +626,11 @@ function BrowserPage() {
 
               {!activeTab.result && !activeTab.error && (
                 <div className="flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
-                  <div className="orbit-ring size-16 rounded-full opacity-80 blur-[1px]" />
+                  <img
+                    src={logoAsset.url}
+                    alt="Quantum Services logo"
+                    className="glow-ring size-20 rounded-full object-contain ring-1 ring-border/60 bg-card/40 p-1"
+                  />
                   <div>
                     <h2 className="font-display text-xl font-semibold">Start browsing privately</h2>
                     <p className="mt-2 max-w-md text-sm text-muted-foreground">
