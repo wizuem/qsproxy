@@ -37,6 +37,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchThroughProxy } from "@/lib/proxy.functions";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/quantum-logo.png.asset.json";
 
 export const Route = createFileRoute("/proxy")({
   head: () => ({
