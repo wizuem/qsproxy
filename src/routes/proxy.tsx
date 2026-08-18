@@ -55,7 +55,7 @@ export const Route = createFileRoute("/proxy")({
       },
     ],
   }),
-  component: BrowserPage;
+  component: BrowserPage,
 });
 
 type Result = Awaited<ReturnType<typeof fetchThroughProxy>>;
