@@ -1,13 +1,86 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Menu, X } from "lucide-react";
+import { LogIn, LogOut, Menu, Palette, X } from "lucide-react";
 import logoAsset from "@/assets/quantum-logo.png.asset.json";
+import { themes, useTheme } from "@/components/theme-provider";
+import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Home" },
   { to: "/proxy", label: "Proxy" },
   { to: "/contact", label: "Contact" },
 ] as const;
+
+function HeaderControls() {
+  const { theme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Change theme"
+          onClick={() => setOpen((v) => !v)}
+          className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <Palette className="size-4" />
+        </button>
+        {open && (
+          <div className="surface-card absolute right-0 z-50 mt-2 w-52 space-y-1 rounded-xl p-2">
+            {themes.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => {
+                  setTheme(t.id);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition-colors hover:bg-secondary/70",
+                  theme === t.id && "bg-secondary text-foreground",
+                )}
+              >
+                <span className="flex gap-1">
+                  {t.swatch.map((c) => (
+                    <span
+                      key={c}
+                      className="size-3 rounded-full border border-border"
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </span>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {user ? (
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          title={user.email ?? "Sign out"}
+          className="flex items-center gap-2 rounded-md px-2 py-2 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <LogOut className="size-4" />
+          <span className="hidden md:inline">Sign out</span>
+        </button>
+      ) : (
+        <Link
+          to="/auth"
+          className="flex items-center gap-2 rounded-md px-2 py-2 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <LogIn className="size-4" />
+          <span className="hidden md:inline">Sign in</span>
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
