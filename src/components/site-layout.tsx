@@ -110,14 +110,17 @@ export function SiteLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <button
-            type="button"
-            aria-label="Toggle navigation"
-            onClick={() => setOpen((v) => !v)}
-            className="rounded-md border border-border p-2 text-foreground sm:hidden"
-          >
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <HeaderControls />
+            <button
+              type="button"
+              aria-label="Toggle navigation"
+              onClick={() => setOpen((v) => !v)}
+              className="rounded-md border border-border p-2 text-foreground sm:hidden"
+            >
+              {open ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
+          </div>
         </div>
 
         {open && (
