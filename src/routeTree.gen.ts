@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BrowserRouteImport } from './routes/browser'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ProxyRouteImport } from './routes/proxy'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrowserRoute = BrowserRouteImport.update({
+  id: '/browser',
+  path: '/browser',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -38,12 +44,14 @@ const ProxyRoute = ProxyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
   '/proxy': typeof ProxyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
   '/proxy': typeof ProxyRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
   '/proxy': typeof ProxyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/contact' | '/proxy'
+  fullPaths: '/' | '/auth' | '/browser' | '/contact' | '/proxy'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/contact' | '/proxy'
-  id: '__root__' | '/' | '/auth' | '/contact' | '/proxy'
+  to: '/' | '/auth' | '/browser' | '/contact' | '/proxy'
+  id: '__root__' | '/' | '/auth' | '/browser' | '/contact' | '/proxy'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  BrowserRoute: typeof BrowserRoute
   ContactRoute: typeof ContactRoute
   ProxyRoute: typeof ProxyRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/browser': {
+      id: '/browser'
+      path: '/browser'
+      fullPath: '/browser'
+      preLoaderRoute: typeof BrowserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  BrowserRoute: BrowserRoute,
   ContactRoute: ContactRoute,
   ProxyRoute: ProxyRoute,
 }
