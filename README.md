@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Quantum Services
+
+Build me a website called quantum services with the logo above. I want it to have a home page a contact us page with a working form I can customize and a proxy page where it has a customizable proxy and I want the color scheme to be dark with other colors in the logo
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://quantum-services.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/78372ad6-06ae-45b0-8d65-9ac80076aab7).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
