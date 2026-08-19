@@ -318,9 +318,19 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
 
   const bookmarked = bookmarks.some((b) => b.url === (activeTab.result?.finalUrl ?? activeTab.address));
 
-  return (
-    <SiteLayout>
-      <section className="mx-auto w-full max-w-7xl px-3 py-6 md:px-5 md:py-10">
+  const content = (
+    <>
+      {showTutorial && (
+        <BrowserOnboarding signedIn={Boolean(user)} onDone={() => setShowTutorial(false)} />
+      )}
+      <section
+        ref={shellRef}
+        className={cn(
+          "mx-auto w-full px-3 py-6 md:px-5",
+          standalone ? "max-w-none py-4 md:py-5" : "max-w-7xl md:py-10",
+          fullscreen && "max-w-none bg-background",
+        )}
+      >
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold md:text-4xl">
@@ -467,6 +477,16 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
                 <ZoomIn className="size-4" />
               </ToolbarButton>
               <ToolbarButton
+                label="Quantum AI"
+                active={panel === "ai"}
+                onClick={() => setPanel(panel === "ai" ? "none" : "ai")}
+              >
+                <Sparkles className="size-4" />
+              </ToolbarButton>
+              <ToolbarButton label={fullscreen ? "Exit fullscreen" : "Fullscreen"} onClick={toggleFullscreen} active={fullscreen}>
+                {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              </ToolbarButton>
+              <ToolbarButton
                 label="Bookmarks"
                 active={panel === "bookmarks"}
                 onClick={() => setPanel(panel === "bookmarks" ? "none" : "bookmarks")}
@@ -507,6 +527,9 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
             {/* Side panel */}
             {panel !== "none" && (
               <aside className="w-full shrink-0 space-y-4 border-b border-border bg-sidebar/60 p-4 text-sm lg:w-80 lg:border-b-0 lg:border-r">
+                {panel === "ai" && (
+                  <QuantumAI className="-m-4 h-[70vh] rounded-none" />
+                )}
                 {panel === "bookmarks" && (
                   <PanelList
                     title="Bookmarks"
@@ -636,6 +659,17 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
                       </div>
                       <Switch checked={blockScripts} onCheckedChange={setBlockScripts} />
                     </div>
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+                      <div>
+                        <p className="flex items-center gap-2 text-xs font-medium">
+                          <LogOut className="size-4" /> Confirm before leaving
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Asks you to confirm before the page closes or reloads.
+                        </p>
+                      </div>
+                      <Switch checked={exitGuard} onCheckedChange={setExitGuard} />
+                    </div>
                     <Button type="button" variant="outline" className="w-full" onClick={savePrefs}>
                       {user ? "Save to my account" : "Sign in to sync"}
                     </Button>
@@ -669,11 +703,18 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
                   <div className="flex flex-wrap justify-center gap-2">
                     {proxyConfig.quickLinks.map((link) => (
                       <button
-                        key={link.url}
+                        key={link.label}
                         type="button"
-                        onClick={() => void load(activeTab.id, link.url)}
+                        onClick={() => {
+                          if (link.kind === "ai") {
+                            setPanel("ai");
+                            return;
+                          }
+                          void load(activeTab.id, link.url);
+                        }}
                         className="rounded-full border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
                       >
+                        {link.kind === "ai" && <Sparkles className="mr-1 inline size-3" />}
                         {link.label}
                       </button>
                     ))}
@@ -727,9 +768,69 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
             )}
           </div>
         </div>
+
+        {/* Bottom actions */}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card/50 px-4 py-3 text-xs text-muted-foreground">
+          <span>
+            {exitGuard
+              ? "Leave confirmation is on — you'll be asked before this page closes."
+              : "Tip: turn on leave confirmation so you never close a session by accident."}
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowTutorial(true)}
+              className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
+            >
+              Replay tutorial
+            </button>
+            <button
+              type="button"
+              onClick={() => setExitGuard((v) => !v)}
+              className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
+            >
+              {exitGuard ? "Disable leave confirmation" : "Enable leave confirmation"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmLeave(true)}
+              className="rounded-full border border-destructive/60 px-4 py-2 text-destructive transition-colors hover:bg-destructive/10"
+            >
+              Leave browser
+            </button>
+          </div>
+        </div>
+
+        {confirmLeave && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background/85 p-4 backdrop-blur-md">
+            <div className="surface-card w-full max-w-sm rounded-2xl p-5 text-center">
+              <h2 className="font-display text-base font-semibold">Leave this page?</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Your tabs, open pages and unsaved session will be closed.
+              </p>
+              <div className="mt-5 flex justify-center gap-2">
+                <Button variant="outline" onClick={() => setConfirmLeave(false)}>
+                  Stay here
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setConfirmLeave(false);
+                    window.location.href = "/";
+                  }}
+                >
+                  Yes, leave
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
-    </SiteLayout>
+    </>
   );
+
+  if (standalone) return <div className="min-h-screen bg-background">{content}</div>;
+  return <SiteLayout>{content}</SiteLayout>;
 }
 
 function ToolbarButton({
