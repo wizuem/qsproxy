@@ -70,11 +70,10 @@ export const proxyConfig = {
     { id: "wikipedia", label: "Wikipedia", url: "https://en.wikipedia.org/w/index.php?search={{query}}" },
   ],
   quickLinks: [
+    { label: "Quantum AI", url: "", kind: "ai" as const },
+    { label: "Discord", url: "https://discord.gg/mmSU3f89V", kind: "external" as const },
+    { label: "YouTube", url: "https://www.youtube.com", kind: "external" as const },
     { label: "Wikipedia", url: "https://en.wikipedia.org" },
-    { label: "Hacker News", url: "https://news.ycombinator.com" },
     { label: "DuckDuckGo", url: "https://duckduckgo.com/html/?q=quantum+services" },
-    { label: "MDN Web Docs", url: "https://developer.mozilla.org" },
-    { label: "Example.com", url: "https://example.com" },
-    { label: "Project Gutenberg", url: "https://www.gutenberg.org" },
-  ],
+  ] satisfies { label: string; url: string; kind?: "ai" | "external" }[],
 };
