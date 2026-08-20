@@ -1,8 +1,8 @@
 export type ArchiveItem = {
   id: string;
   title: string;
-  year?: string;
-  description?: string;
+  year?: string | undefined;
+  description?: string | undefined;
   thumb: string;
   embed: string;
 };
@@ -65,8 +65,8 @@ export type VideoItem = {
   id: string;
   title: string;
   author: string;
-  views?: number;
-  lengthSeconds?: number;
+  views?: number | undefined;
+  lengthSeconds?: number | undefined;
   thumb: string;
 };
 
