@@ -12,15 +12,9 @@ import {
   History,
   Home,
   Loader2,
-  LogOut,
-  Maximize2,
-  Minimize2,
-  Palette,
   Plus,
   RotateCw,
   Search,
-  Settings2,
-  ShieldCheck,
   Sparkles,
   Star,
   Trash2,
@@ -32,12 +26,9 @@ import { toast } from "sonner";
 
 import { BrowserOnboarding, ONBOARDING_KEY } from "@/components/browser-onboarding";
 import { QuantumAI } from "@/components/quantum-ai";
-import { SiteLayout } from "@/components/site-layout";
-import { themes, useTheme } from "@/components/theme-provider";
+import { useBrowserSettings } from "@/components/browser-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { proxyConfig } from "@/config/site";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,28 +75,21 @@ function normalizeInput(raw: string, engine: string) {
   return engine.replace("{{query}}", encodeURIComponent(value));
 }
 
-export function QuantumBrowser({ standalone = false }: { standalone?: boolean }) {
+/**
+ * The Quantum Browser viewport. Rendered inside the app shell, it fills the
+ * available height. Global browser preferences live on the Settings page.
+ */
+export function QuantumBrowser({ initialUrl }: { initialUrl?: string }) {
   const run = useServerFn(fetchThroughProxy);
   const { user } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { settings, template, engineUrl } = useBrowserSettings();
 
-  const [tabs, setTabs] = useState<Tab[]>(() => [newTab()]);
+  const [tabs, setTabs] = useState<Tab[]>(() => [newTab(initialUrl ?? "")]);
   const [activeId, setActiveId] = useState<string>(() => "");
-  const [panel, setPanel] = useState<"none" | "bookmarks" | "history" | "settings" | "themes" | "ai">("none");
+  const [panel, setPanel] = useState<"none" | "bookmarks" | "history" | "ai">("none");
   const [view, setView] = useState<"page" | "source">("page");
   const [zoom, setZoom] = useState(100);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [exitGuard, setExitGuard] = useState(false);
-  const [confirmLeave, setConfirmLeave] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const shellRef = useRef<HTMLDivElement>(null);
-
-  const [presetId, setPresetId] = useState(proxyConfig.presets[0]!.id);
-  const [customTemplate, setCustomTemplate] = useState("");
-  const [engineId, setEngineId] = useState(proxyConfig.searchEngines[0]!.id);
-  const [blockScripts, setBlockScripts] = useState(true);
-  const [readerMode, setReaderMode] = useState(false);
-  const [homepage, setHomepage] = useState(proxyConfig.homepage);
 
   const [historyList, setHistoryList] = useState<{ url: string; title: string; at: number }[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -123,84 +107,23 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
       if (h) setHistoryList(JSON.parse(h));
       const b = window.localStorage.getItem(BOOKMARKS_KEY);
       if (b) setBookmarks(JSON.parse(b));
+      if (!window.localStorage.getItem(ONBOARDING_KEY)) setShowTutorial(true);
     } catch {
       /* ignore malformed storage */
     }
   }, []);
 
-  /* ── first-run tutorial ────────────────────────────────── */
-  useEffect(() => {
-    try {
-      if (!window.localStorage.getItem(ONBOARDING_KEY)) setShowTutorial(true);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  /* ── fullscreen ────────────────────────────────────────── */
-  useEffect(() => {
-    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener("fullscreenchange", onChange);
-    return () => document.removeEventListener("fullscreenchange", onChange);
-  }, []);
-
-  const toggleFullscreen = () => {
-    if (document.fullscreenElement) {
-      void document.exitFullscreen();
-    } else {
-      void shellRef.current?.requestFullscreen?.().catch(() => {
-        toast.error("Fullscreen was blocked by your browser.");
-      });
-    }
-  };
-
-  /* ── leave-page confirmation ───────────────────────────── */
-  useEffect(() => {
-    if (!exitGuard) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [exitGuard]);
-
-  /* ── cloud-synced bookmarks + prefs when signed in ─────── */
+  /* ── cloud-synced bookmarks when signed in ─────────────── */
   useEffect(() => {
     if (!user) return;
     void (async () => {
-      const [{ data: rows }, { data: prefs }] = await Promise.all([
-        supabase.from("bookmarks").select("id,title,url").order("created_at", { ascending: false }),
-        supabase.from("browser_prefs").select("theme,homepage,block_scripts").eq("user_id", user.id).maybeSingle(),
-      ]);
+      const { data: rows } = await supabase
+        .from("bookmarks")
+        .select("id,title,url")
+        .order("created_at", { ascending: false });
       if (rows) setBookmarks(rows as Bookmark[]);
-      if (prefs) {
-        setHomepage(prefs.homepage);
-        setBlockScripts(prefs.block_scripts);
-        if (themes.some((t) => t.id === prefs.theme)) setTheme(prefs.theme as typeof theme);
-      }
     })();
-  }, [user, setTheme]);
-
-  const savePrefs = async () => {
-    if (!user) {
-      toast.error("Sign in to sync your settings.");
-      return;
-    }
-    const { error } = await supabase
-      .from("browser_prefs")
-      .upsert({ user_id: user.id, theme, homepage, block_scripts: blockScripts, updated_at: new Date().toISOString() });
-    if (error) toast.error(error.message);
-    else toast.success("Settings synced to your account.");
-  };
-
-  const template = useMemo(() => {
-    if (presetId === "custom") return customTemplate.trim();
-    return proxyConfig.presets.find((p) => p.id === presetId)?.url ?? "";
-  }, [presetId, customTemplate]);
-
-  const engineUrl =
-    proxyConfig.searchEngines.find((e) => e.id === engineId)?.url ?? proxyConfig.searchEngines[0]!.url;
+  }, [user]);
 
   const patchTab = useCallback((id: string, patch: Partial<Tab>) => {
     setTabs((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -218,15 +141,20 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
     async (tabId: string, rawUrl: string, mode: "push" | "replace" = "push") => {
       const url = normalizeInput(rawUrl, engineUrl);
       if (!url) return;
-      if (presetId === "custom" && !template.includes("{{target}}")) {
-        patchTab(tabId, { error: "Custom endpoints must include {{target}}." });
+      if (settings.presetId === "custom" && !template.includes("{{target}}")) {
+        patchTab(tabId, { error: "Custom endpoints must include {{target}} — fix this in Settings." });
         return;
       }
 
       patchTab(tabId, { loading: true, error: "", address: url });
       try {
         const data = await run({
-          data: { target: url, template: template || undefined, blockScripts, readerMode },
+          data: {
+            target: url,
+            template: template || undefined,
+            blockScripts: settings.blockScripts,
+            readerMode: settings.readerMode,
+          },
         });
         setTabs((prev) =>
           prev.map((t) => {
@@ -252,8 +180,16 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
         });
       }
     },
-    [blockScripts, engineUrl, patchTab, presetId, readerMode, run, template],
+    [engineUrl, patchTab, run, settings.blockScripts, settings.presetId, settings.readerMode, template],
   );
+
+  /* ── open the initial URL once (e.g. from Apps/Games) ──── */
+  const openedInitial = useRef(false);
+  useEffect(() => {
+    if (openedInitial.current || !initialUrl || !activeId) return;
+    openedInitial.current = true;
+    void load(activeId, initialUrl);
+  }, [activeId, initialUrl, load]);
 
   /* ── link clicks inside the frame ──────────────────────── */
   const activeIdRef = useRef(activeId);
@@ -317,520 +253,317 @@ export function QuantumBrowser({ standalone = false }: { standalone?: boolean })
   };
 
   const bookmarked = bookmarks.some((b) => b.url === (activeTab.result?.finalUrl ?? activeTab.address));
+  const presetLabel = useMemo(
+    () => proxyConfig.presets.find((p) => p.id === settings.presetId)?.label ?? "Custom endpoint",
+    [settings.presetId],
+  );
 
-  const content = (
-    <>
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
       {showTutorial && (
         <BrowserOnboarding signedIn={Boolean(user)} onDone={() => setShowTutorial(false)} />
       )}
-      <section
-        ref={shellRef}
-        className={cn(
-          "mx-auto w-full px-3 py-6 md:px-5",
-          standalone ? "max-w-none py-4 md:py-5" : "max-w-7xl md:py-10",
-          fullscreen && "max-w-none bg-background",
-        )}
-      >
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold md:text-4xl">
-              Quantum <span className="text-nebula">Browser</span>
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{proxyConfig.subheading}</p>
-          </div>
-          {!user && (
-            <Link
-              to="/auth"
-              className="rounded-full border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Sign in to sync bookmarks & themes
-            </Link>
-          )}
-        </div>
 
-        <div className="surface-card glow-ring overflow-hidden rounded-2xl">
-          {/* Tab strip */}
-          <div className="chrome-bar flex items-center gap-1 overflow-x-auto border-b border-border px-2 pt-2">
-            {tabs.map((tab) => (
-              <div
-                key={tab.id}
-                onClick={() => setActiveId(tab.id)}
-                className={cn(
-                  "group flex min-w-[9rem] max-w-[14rem] cursor-pointer items-center gap-2 rounded-t-lg border border-b-0 px-3 py-2 text-xs transition-colors",
-                  tab.id === activeId
-                    ? "border-border bg-card text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {tab.loading ? (
-                  <Loader2 className="size-3 shrink-0 animate-spin" />
-                ) : (
-                  <Globe className="size-3 shrink-0" />
-                )}
-                <span className="truncate">{tab.title || "New tab"}</span>
-                {tabs.length > 1 && (
-                  <button
-                    type="button"
-                    aria-label="Close tab"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setTabs((prev) => prev.filter((t) => t.id !== tab.id));
-                      if (tab.id === activeId) {
-                        const rest = tabs.filter((t) => t.id !== tab.id);
-                        setActiveId(rest[0]?.id ?? "");
-                      }
-                    }}
-                    className="ml-auto opacity-50 transition-opacity hover:opacity-100"
-                  >
-                    <X className="size-3" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              aria-label="New tab"
-              onClick={() => {
-                const tab = newTab();
-                setTabs((prev) => [...prev, tab]);
-                setActiveId(tab.id);
-              }}
-              className="mb-1 ml-1 rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <Plus className="size-4" />
-            </button>
-          </div>
-
-          {/* Toolbar */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void load(activeTab.id, activeTab.address);
-            }}
-            className="chrome-bar flex flex-wrap items-center gap-2 border-b border-border p-2"
+      {/* Tab strip */}
+      <div className="chrome-bar flex items-center gap-1 overflow-x-auto border-b border-border px-2 pt-2">
+        {tabs.map((tab) => (
+          <div
+            key={tab.id}
+            onClick={() => setActiveId(tab.id)}
+            className={cn(
+              "group flex min-w-[9rem] max-w-[14rem] cursor-pointer items-center gap-2 rounded-t-lg border border-b-0 px-3 py-2 text-xs transition-colors",
+              tab.id === activeId
+                ? "border-border bg-card text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
           >
-            <div className="flex items-center gap-1">
-              <ToolbarButton label="Back" onClick={goBack} disabled={activeTab.index <= 0}>
-                <ArrowLeft className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="Forward"
-                onClick={goForward}
-                disabled={activeTab.index >= activeTab.history.length - 1}
-              >
-                <ArrowRight className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="Reload"
-                onClick={() => void load(activeTab.id, activeTab.address, "replace")}
-                disabled={!activeTab.address}
-              >
-                <RotateCw className={cn("size-4", activeTab.loading && "animate-spin")} />
-              </ToolbarButton>
-              <ToolbarButton label="Home" onClick={() => void load(activeTab.id, homepage)}>
-                <Home className="size-4" />
-              </ToolbarButton>
-            </div>
-
-            <div className="relative flex min-w-[12rem] flex-1 items-center">
-              <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
-              <Input
-                value={activeTab.address}
-                onChange={(e) => patchTab(activeTab.id, { address: e.target.value })}
-                placeholder="Search the web or enter an address"
-                className="rounded-full pl-9 pr-24"
-                maxLength={2000}
-                spellCheck={false}
-              />
-              <div className="absolute right-2 flex items-center gap-1">
-                <ToolbarButton label="Bookmark this page" onClick={addBookmark} disabled={!activeTab.address}>
-                  <Star className={cn("size-4", bookmarked && "fill-current text-primary")} />
-                </ToolbarButton>
-                <Button type="submit" size="sm" className="h-7 rounded-full px-3 text-xs">
-                  Go
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <ToolbarButton
-                label="Reader mode"
-                active={readerMode}
-                onClick={() => {
-                  setReaderMode((v) => !v);
-                  if (activeTab.address) void load(activeTab.id, activeTab.address, "replace");
+            {tab.loading ? (
+              <Loader2 className="size-3 shrink-0 animate-spin" />
+            ) : (
+              <Globe className="size-3 shrink-0" />
+            )}
+            <span className="truncate">{tab.title || "New tab"}</span>
+            {tabs.length > 1 && (
+              <button
+                type="button"
+                aria-label="Close tab"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTabs((prev) => prev.filter((t) => t.id !== tab.id));
+                  if (tab.id === activeId) {
+                    const rest = tabs.filter((t) => t.id !== tab.id);
+                    setActiveId(rest[0]?.id ?? "");
+                  }
                 }}
+                className="ml-auto opacity-50 transition-opacity hover:opacity-100"
               >
-                <BookOpen className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="View source"
-                active={view === "source"}
-                onClick={() => setView(view === "source" ? "page" : "source")}
-              >
-                <Code2 className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton label="Zoom out" onClick={() => setZoom((z) => Math.max(50, z - 10))}>
-                <ZoomOut className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton label="Zoom in" onClick={() => setZoom((z) => Math.min(180, z + 10))}>
-                <ZoomIn className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="Quantum AI"
-                active={panel === "ai"}
-                onClick={() => setPanel(panel === "ai" ? "none" : "ai")}
-              >
-                <Sparkles className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton label={fullscreen ? "Exit fullscreen" : "Fullscreen"} onClick={toggleFullscreen} active={fullscreen}>
-                {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-              </ToolbarButton>
-              <ToolbarButton
-                label="Bookmarks"
-                active={panel === "bookmarks"}
-                onClick={() => setPanel(panel === "bookmarks" ? "none" : "bookmarks")}
-              >
-                <Star className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="History"
-                active={panel === "history"}
-                onClick={() => setPanel(panel === "history" ? "none" : "history")}
-              >
-                <History className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="Themes"
-                active={panel === "themes"}
-                onClick={() => setPanel(panel === "themes" ? "none" : "themes")}
-              >
-                <Palette className="size-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                label="Settings"
-                active={panel === "settings"}
-                onClick={() => setPanel(panel === "settings" ? "none" : "settings")}
-              >
-                <Settings2 className="size-4" />
-              </ToolbarButton>
-            </div>
-          </form>
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          aria-label="New tab"
+          onClick={() => {
+            const tab = newTab();
+            setTabs((prev) => [...prev, tab]);
+            setActiveId(tab.id);
+          }}
+          className="mb-1 ml-1 rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <Plus className="size-4" />
+        </button>
+      </div>
 
-          {activeTab.loading && (
-            <div className="h-0.5 w-full overflow-hidden bg-secondary">
-              <div className="h-full w-1/3 animate-pulse orbit-ring" />
+      {/* Toolbar */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void load(activeTab.id, activeTab.address);
+        }}
+        className="chrome-bar flex flex-wrap items-center gap-2 border-b border-border p-2"
+      >
+        <div className="flex items-center gap-1">
+          <ToolbarButton label="Back" onClick={goBack} disabled={activeTab.index <= 0}>
+            <ArrowLeft className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Forward"
+            onClick={goForward}
+            disabled={activeTab.index >= activeTab.history.length - 1}
+          >
+            <ArrowRight className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Reload"
+            onClick={() => void load(activeTab.id, activeTab.address, "replace")}
+            disabled={!activeTab.address}
+          >
+            <RotateCw className={cn("size-4", activeTab.loading && "animate-spin")} />
+          </ToolbarButton>
+          <ToolbarButton label="Home" onClick={() => void load(activeTab.id, settings.homepage)}>
+            <Home className="size-4" />
+          </ToolbarButton>
+        </div>
+
+        <div className="relative flex min-w-[12rem] flex-1 items-center">
+          <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
+          <Input
+            value={activeTab.address}
+            onChange={(e) => patchTab(activeTab.id, { address: e.target.value })}
+            placeholder="Search the web or enter an address"
+            className="rounded-full pl-9 pr-24"
+            maxLength={2000}
+            spellCheck={false}
+          />
+          <div className="absolute right-2 flex items-center gap-1">
+            <ToolbarButton label="Bookmark this page" onClick={addBookmark} disabled={!activeTab.address}>
+              <Star className={cn("size-4", bookmarked && "fill-current text-primary")} />
+            </ToolbarButton>
+            <Button type="submit" size="sm" className="h-7 rounded-full px-3 text-xs">
+              Go
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <ToolbarButton
+            label="View source"
+            active={view === "source"}
+            onClick={() => setView(view === "source" ? "page" : "source")}
+          >
+            <Code2 className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton label="Zoom out" onClick={() => setZoom((z) => Math.max(50, z - 10))}>
+            <ZoomOut className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton label="Zoom in" onClick={() => setZoom((z) => Math.min(180, z + 10))}>
+            <ZoomIn className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Quantum AI"
+            active={panel === "ai"}
+            onClick={() => setPanel(panel === "ai" ? "none" : "ai")}
+          >
+            <Sparkles className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Bookmarks"
+            active={panel === "bookmarks"}
+            onClick={() => setPanel(panel === "bookmarks" ? "none" : "bookmarks")}
+          >
+            <Star className="size-4" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="History"
+            active={panel === "history"}
+            onClick={() => setPanel(panel === "history" ? "none" : "history")}
+          >
+            <History className="size-4" />
+          </ToolbarButton>
+        </div>
+      </form>
+
+      {activeTab.loading && (
+        <div className="h-0.5 w-full overflow-hidden bg-secondary">
+          <div className="h-full w-1/3 animate-pulse orbit-ring" />
+        </div>
+      )}
+
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        {/* Side panel */}
+        {panel !== "none" && (
+          <aside className="w-full shrink-0 overflow-auto border-b border-border bg-sidebar/60 text-sm lg:w-80 lg:border-b-0 lg:border-r">
+            {panel === "ai" && <QuantumAI className="h-full" />}
+            {panel === "bookmarks" && (
+              <div className="p-4">
+                <PanelList
+                  title="Bookmarks"
+                  empty="No bookmarks yet — press the star in the address bar."
+                  items={bookmarks.map((b) => ({
+                    key: b.id,
+                    title: b.title,
+                    subtitle: b.url,
+                    onOpen: () => void load(activeTab.id, b.url),
+                    onRemove: () => void removeBookmark(b.id),
+                  }))}
+                  footer={user ? "Synced to your account." : "Stored on this device — sign in from Settings to sync."}
+                />
+              </div>
+            )}
+            {panel === "history" && (
+              <div className="p-4">
+                <PanelList
+                  title="History"
+                  empty="Nothing here yet."
+                  items={historyList.map((h) => ({
+                    key: `${h.url}-${h.at}`,
+                    title: h.title || h.url,
+                    subtitle: new Date(h.at).toLocaleString(),
+                    onOpen: () => void load(activeTab.id, h.url),
+                  }))}
+                  onClear={() => {
+                    setHistoryList([]);
+                    window.localStorage.removeItem(HISTORY_KEY);
+                  }}
+                />
+              </div>
+            )}
+          </aside>
+        )}
+
+        {/* Viewport */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {activeTab.error && (
+            <div className="m-4 rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-sm">
+              {activeTab.error}
             </div>
           )}
 
-          <div className="flex min-h-[60vh] flex-col lg:flex-row">
-            {/* Side panel */}
-            {panel !== "none" && (
-              <aside className="w-full shrink-0 space-y-4 border-b border-border bg-sidebar/60 p-4 text-sm lg:w-80 lg:border-b-0 lg:border-r">
-                {panel === "ai" && (
-                  <QuantumAI className="-m-4 h-[70vh] rounded-none" />
-                )}
-                {panel === "bookmarks" && (
-                  <PanelList
-                    title="Bookmarks"
-                    empty="No bookmarks yet — press the star in the address bar."
-                    items={bookmarks.map((b) => ({
-                      key: b.id,
-                      title: b.title,
-                      subtitle: b.url,
-                      onOpen: () => void load(activeTab.id, b.url),
-                      onRemove: () => void removeBookmark(b.id),
-                    }))}
-                    footer={
-                      user ? "Synced to your account." : "Stored on this device — sign in to sync."
-                    }
-                  />
-                )}
-                {panel === "history" && (
-                  <PanelList
-                    title="History"
-                    empty="Nothing here yet."
-                    items={historyList.map((h) => ({
-                      key: `${h.url}-${h.at}`,
-                      title: h.title || h.url,
-                      subtitle: new Date(h.at).toLocaleString(),
-                      onOpen: () => void load(activeTab.id, h.url),
-                    }))}
-                    onClear={() => {
-                      setHistoryList([]);
-                      window.localStorage.removeItem(HISTORY_KEY);
+          {!activeTab.result && !activeTab.error && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
+              <img
+                src={logoAsset.url}
+                alt="Quantum Services logo"
+                className="glow-ring size-20 rounded-full bg-card/40 object-contain p-1 ring-1 ring-border/60"
+              />
+              <div>
+                <h1 className="font-display text-xl font-semibold">Start browsing privately</h1>
+                <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                  Type a search or an address above. Pages are fetched by our servers, stripped of
+                  scripts, and rendered in an isolated frame.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {proxyConfig.quickLinks.map((link) => (
+                  <button
+                    key={link.label}
+                    type="button"
+                    onClick={() => {
+                      if (link.kind === "ai") {
+                        setPanel("ai");
+                        return;
+                      }
+                      void load(activeTab.id, link.url);
                     }}
-                  />
-                )}
-                {panel === "themes" && (
-                  <div className="space-y-3">
-                    <h2 className="font-display text-sm font-semibold">Themes</h2>
-                    <div className="grid gap-2">
-                      {themes.map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => setTheme(t.id)}
-                          className={cn(
-                            "flex items-center gap-3 rounded-xl border p-3 text-left text-xs transition-colors",
-                            theme === t.id
-                              ? "border-primary bg-secondary"
-                              : "border-border hover:bg-secondary/60",
-                          )}
-                        >
-                          <span className="flex gap-1">
-                            {t.swatch.map((c) => (
-                              <span
-                                key={c}
-                                className="size-4 rounded-full border border-border"
-                                style={{ backgroundColor: c }}
-                              />
-                            ))}
-                          </span>
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {panel === "settings" && (
-                  <div className="space-y-4">
-                    <h2 className="font-display text-sm font-semibold">Browser settings</h2>
-                    <div className="space-y-2">
-                      <Label htmlFor="preset">Proxy endpoint</Label>
-                      <select
-                        id="preset"
-                        value={presetId}
-                        onChange={(e) => setPresetId(e.target.value)}
-                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                      >
-                        {proxyConfig.presets.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.label}
-                          </option>
-                        ))}
-                        <option value="custom">Custom endpoint…</option>
-                      </select>
-                    </div>
-                    {presetId === "custom" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="template">Custom endpoint template</Label>
-                        <Input
-                          id="template"
-                          value={customTemplate}
-                          onChange={(e) => setCustomTemplate(e.target.value)}
-                          placeholder="https://my-proxy.dev/get?url={{target}}"
-                          maxLength={500}
-                        />
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      <Label htmlFor="engine">Search engine</Label>
-                      <select
-                        id="engine"
-                        value={engineId}
-                        onChange={(e) => setEngineId(e.target.value)}
-                        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                      >
-                        {proxyConfig.searchEngines.map((e) => (
-                          <option key={e.id} value={e.id}>
-                            {e.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="homepage">Homepage</Label>
-                      <Input
-                        id="homepage"
-                        value={homepage}
-                        onChange={(e) => setHomepage(e.target.value)}
-                        maxLength={2000}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
-                      <div>
-                        <p className="flex items-center gap-2 text-xs font-medium">
-                          <ShieldCheck className="size-4" /> Block scripts & trackers
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Strips page scripts before rendering.
-                        </p>
-                      </div>
-                      <Switch checked={blockScripts} onCheckedChange={setBlockScripts} />
-                    </div>
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
-                      <div>
-                        <p className="flex items-center gap-2 text-xs font-medium">
-                          <LogOut className="size-4" /> Confirm before leaving
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Asks you to confirm before the page closes or reloads.
-                        </p>
-                      </div>
-                      <Switch checked={exitGuard} onCheckedChange={setExitGuard} />
-                    </div>
-                    <Button type="button" variant="outline" className="w-full" onClick={savePrefs}>
-                      {user ? "Save to my account" : "Sign in to sync"}
-                    </Button>
-                  </div>
-                )}
-              </aside>
-            )}
-
-            {/* Viewport */}
-            <div className="min-w-0 flex-1">
-              {activeTab.error && (
-                <div className="m-4 rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-sm">
-                  {activeTab.error}
-                </div>
-              )}
-
-              {!activeTab.result && !activeTab.error && (
-                <div className="flex h-full flex-col items-center justify-center gap-6 p-10 text-center">
-                  <img
-                    src={logoAsset.url}
-                    alt="Quantum Services logo"
-                    className="glow-ring size-20 rounded-full object-contain ring-1 ring-border/60 bg-card/40 p-1"
-                  />
-                  <div>
-                    <h2 className="font-display text-xl font-semibold">Start browsing privately</h2>
-                    <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                      Type a search or an address above. Pages are fetched by our servers, stripped of
-                      scripts, and rendered in an isolated frame.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {proxyConfig.quickLinks.map((link) => (
-                      <button
-                        key={link.label}
-                        type="button"
-                        onClick={() => {
-                          if (link.kind === "ai") {
-                            setPanel("ai");
-                            return;
-                          }
-                          void load(activeTab.id, link.url);
-                        }}
-                        className="rounded-full border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
-                      >
-                        {link.kind === "ai" && <Sparkles className="mr-1 inline size-3" />}
-                        {link.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTab.result && view === "page" && (
-                <iframe
-                  key={`${activeTab.id}-${activeTab.result.finalUrl}-${zoom}`}
-                  title={activeTab.title || "Proxied page"}
-                  srcDoc={activeTab.result.document}
-                  sandbox="allow-scripts allow-popups-to-escape-sandbox"
-                  referrerPolicy="no-referrer"
-                  className="h-[72vh] w-full border-0 bg-background"
-                  style={{ zoom: `${zoom}%` }}
-                />
-              )}
-
-              {activeTab.result && view === "source" && (
-                <pre className="max-h-[72vh] overflow-auto p-4 text-xs text-muted-foreground">
-                  {activeTab.result.source}
-                </pre>
-              )}
-            </div>
-          </div>
-
-          {/* Status bar */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border bg-sidebar/60 px-4 py-2 text-[11px] text-muted-foreground">
-            {activeTab.result ? (
-              <>
-                <span className="text-foreground">HTTP {activeTab.result.status}</span>
-                <span className="truncate">{activeTab.result.finalUrl}</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="size-3" /> {activeTab.result.elapsedMs} ms
-                </span>
-                <span>{(activeTab.result.bytes / 1024).toFixed(1)} KB</span>
-                <span>{blockScripts ? "Scripts blocked" : "Scripts allowed"}</span>
-                <span>Zoom {zoom}%</span>
-                <a
-                  href={activeTab.result.finalUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="ml-auto flex items-center gap-1 hover:text-foreground"
+                    className="rounded-full border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                  >
+                    {link.kind === "ai" && <Sparkles className="mr-1 inline size-3" />}
+                    {link.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap justify-center gap-3 text-xs text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={() => setShowTutorial(true)}
+                  className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
                 >
-                  Open original <ExternalLink className="size-3" />
-                </a>
-              </>
-            ) : (
-              <span>Ready · {proxyConfig.presets.find((p) => p.id === presetId)?.label ?? "Custom endpoint"}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom actions */}
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card/50 px-4 py-3 text-xs text-muted-foreground">
-          <span>
-            {exitGuard
-              ? "Leave confirmation is on — you'll be asked before this page closes."
-              : "Tip: turn on leave confirmation so you never close a session by accident."}
-          </span>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowTutorial(true)}
-              className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
-            >
-              Replay tutorial
-            </button>
-            <button
-              type="button"
-              onClick={() => setExitGuard((v) => !v)}
-              className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
-            >
-              {exitGuard ? "Disable leave confirmation" : "Enable leave confirmation"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmLeave(true)}
-              className="rounded-full border border-destructive/60 px-4 py-2 text-destructive transition-colors hover:bg-destructive/10"
-            >
-              Leave browser
-            </button>
-          </div>
-        </div>
-
-        {confirmLeave && (
-          <div className="fixed inset-0 z-[90] flex items-center justify-center bg-background/85 p-4 backdrop-blur-md">
-            <div className="surface-card w-full max-w-sm rounded-2xl p-5 text-center">
-              <h2 className="font-display text-base font-semibold">Leave this page?</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Your tabs, open pages and unsaved session will be closed.
-              </p>
-              <div className="mt-5 flex justify-center gap-2">
-                <Button variant="outline" onClick={() => setConfirmLeave(false)}>
-                  Stay here
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setConfirmLeave(false);
-                    window.location.href = "/";
-                  }}
+                  Replay tutorial
+                </button>
+                <Link
+                  to="/settings"
+                  className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
                 >
-                  Yes, leave
-                </Button>
+                  Browser settings
+                </Link>
               </div>
             </div>
-          </div>
-        )}
-      </section>
-    </>
-  );
+          )}
 
-  if (standalone) return <div className="min-h-screen bg-background">{content}</div>;
-  return <SiteLayout>{content}</SiteLayout>;
+          {activeTab.result && view === "page" && (
+            <iframe
+              key={`${activeTab.id}-${activeTab.result.finalUrl}-${zoom}`}
+              title={activeTab.title || "Proxied page"}
+              srcDoc={activeTab.result.document}
+              sandbox="allow-scripts allow-popups-to-escape-sandbox"
+              referrerPolicy="no-referrer"
+              className="min-h-0 w-full flex-1 border-0 bg-background"
+              style={{ zoom: `${zoom}%` }}
+            />
+          )}
+
+          {activeTab.result && view === "source" && (
+            <pre className="min-h-0 flex-1 overflow-auto p-4 text-xs text-muted-foreground">
+              {activeTab.result.source}
+            </pre>
+          )}
+        </div>
+      </div>
+
+      {/* Status bar */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border bg-sidebar/60 px-4 py-2 text-[11px] text-muted-foreground">
+        {activeTab.result ? (
+          <>
+            <span className="text-foreground">HTTP {activeTab.result.status}</span>
+            <span className="truncate">{activeTab.result.finalUrl}</span>
+            <span className="flex items-center gap-1">
+              <Clock className="size-3" /> {activeTab.result.elapsedMs} ms
+            </span>
+            <span>{(activeTab.result.bytes / 1024).toFixed(1)} KB</span>
+            <span>{settings.blockScripts ? "Scripts blocked" : "Scripts allowed"}</span>
+            {settings.readerMode && (
+              <span className="flex items-center gap-1">
+                <BookOpen className="size-3" /> Reader
+              </span>
+            )}
+            <span>Zoom {zoom}%</span>
+            <a
+              href={activeTab.result.finalUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="ml-auto flex items-center gap-1 hover:text-foreground"
+            >
+              Open original <ExternalLink className="size-3" />
+            </a>
+          </>
+        ) : (
+          <span>Ready · {presetLabel}</span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function ToolbarButton({
@@ -899,7 +632,7 @@ function PanelList({
       {items.length === 0 ? (
         <p className="text-xs text-muted-foreground">{empty}</p>
       ) : (
-        <ul className="max-h-[55vh] space-y-1 overflow-auto pr-1">
+        <ul className="space-y-1">
           {items.map((item) => (
             <li key={item.key} className="group flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-secondary/60">
               <button type="button" onClick={item.onOpen} className="min-w-0 flex-1 text-left">
