@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Mail, MapPin } from "lucide-react";
-import { SiteLayout } from "@/components/site-layout";
+
+import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,28 +72,22 @@ function ContactPage() {
   };
 
   return (
-    <SiteLayout>
-      <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-14 md:grid-cols-[1fr_1.2fr] md:py-20">
-        <div>
-          <h1 className="text-3xl font-bold md:text-5xl">
-            {contactConfig.heading.split(" ")[0]}{" "}
-            <span className="text-nebula">{contactConfig.heading.split(" ").slice(1).join(" ")}</span>
-          </h1>
-          <p className="mt-4 text-muted-foreground">{contactConfig.subheading}</p>
+    <AppShell>
+      <div className="mx-auto w-full max-w-4xl px-5 py-8">
+        <PageHeader title={contactConfig.heading} subtitle={contactConfig.subheading} />
 
-          <ul className="mt-8 space-y-4 text-sm">
-            <li className="flex items-center gap-3">
-              <Mail className="size-4 text-primary" />
-              <a href={`mailto:${siteConfig.email}`} className="hover:text-primary">
-                {siteConfig.email}
-              </a>
-            </li>
-            <li className="flex items-center gap-3">
-              <MapPin className="size-4 text-primary" />
-              <span className="text-muted-foreground">{siteConfig.location}</span>
-            </li>
-          </ul>
-        </div>
+        <ul className="mb-8 space-y-3 text-sm">
+          <li className="flex items-center gap-3">
+            <Mail className="size-4 text-primary" />
+            <a href={`mailto:${siteConfig.email}`} className="hover:text-primary">
+              {siteConfig.email}
+            </a>
+          </li>
+          <li className="flex items-center gap-3">
+            <MapPin className="size-4 text-primary" />
+            <span className="text-muted-foreground">{siteConfig.location}</span>
+          </li>
+        </ul>
 
         <form onSubmit={onSubmit} className="surface-card space-y-5 rounded-2xl p-6 md:p-8" noValidate>
           {contactConfig.fields.map((field) => (
@@ -155,7 +150,7 @@ function ContactPage() {
             </p>
           )}
         </form>
-      </section>
-    </SiteLayout>
+      </div>
+    </AppShell>
   );
 }
