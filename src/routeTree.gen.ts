@@ -10,14 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiRouteImport } from './routes/ai'
+import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrowserRouteImport } from './routes/browser'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as GamesRouteImport } from './routes/games'
+import { Route as MoviesRouteImport } from './routes/movies'
 import { Route as ProxyRouteImport } from './routes/proxy'
+import { Route as YoutubeRouteImport } from './routes/youtube'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppsRoute = AppsRouteImport.update({
+  id: '/apps',
+  path: '/apps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -35,48 +50,114 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoviesRoute = MoviesRouteImport.update({
+  id: '/movies',
+  path: '/movies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProxyRoute = ProxyRouteImport.update({
   id: '/proxy',
   path: '/proxy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YoutubeRoute = YoutubeRouteImport.update({
+  id: '/youtube',
+  path: '/youtube',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/apps': typeof AppsRoute
   '/auth': typeof AuthRoute
   '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
+  '/games': typeof GamesRoute
+  '/movies': typeof MoviesRoute
   '/proxy': typeof ProxyRoute
+  '/youtube': typeof YoutubeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/apps': typeof AppsRoute
   '/auth': typeof AuthRoute
   '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
+  '/games': typeof GamesRoute
+  '/movies': typeof MoviesRoute
   '/proxy': typeof ProxyRoute
+  '/youtube': typeof YoutubeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
+  '/apps': typeof AppsRoute
   '/auth': typeof AuthRoute
   '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
+  '/games': typeof GamesRoute
+  '/movies': typeof MoviesRoute
   '/proxy': typeof ProxyRoute
+  '/youtube': typeof YoutubeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/browser' | '/contact' | '/proxy'
+  fullPaths:
+    | '/'
+    | '/ai'
+    | '/apps'
+    | '/auth'
+    | '/browser'
+    | '/contact'
+    | '/games'
+    | '/movies'
+    | '/proxy'
+    | '/youtube'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/browser' | '/contact' | '/proxy'
-  id: '__root__' | '/' | '/auth' | '/browser' | '/contact' | '/proxy'
+  to:
+    | '/'
+    | '/ai'
+    | '/apps'
+    | '/auth'
+    | '/browser'
+    | '/contact'
+    | '/games'
+    | '/movies'
+    | '/proxy'
+    | '/youtube'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai'
+    | '/apps'
+    | '/auth'
+    | '/browser'
+    | '/contact'
+    | '/games'
+    | '/movies'
+    | '/proxy'
+    | '/youtube'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiRoute: typeof AiRoute
+  AppsRoute: typeof AppsRoute
   AuthRoute: typeof AuthRoute
   BrowserRoute: typeof BrowserRoute
   ContactRoute: typeof ContactRoute
+  GamesRoute: typeof GamesRoute
+  MoviesRoute: typeof MoviesRoute
   ProxyRoute: typeof ProxyRoute
+  YoutubeRoute: typeof YoutubeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -86,6 +167,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apps': {
+      id: '/apps'
+      path: '/apps'
+      fullPath: '/apps'
+      preLoaderRoute: typeof AppsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -109,6 +204,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/movies': {
+      id: '/movies'
+      path: '/movies'
+      fullPath: '/movies'
+      preLoaderRoute: typeof MoviesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/proxy': {
       id: '/proxy'
       path: '/proxy'
@@ -116,15 +225,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProxyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/youtube': {
+      id: '/youtube'
+      path: '/youtube'
+      fullPath: '/youtube'
+      preLoaderRoute: typeof YoutubeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiRoute: AiRoute,
+  AppsRoute: AppsRoute,
   AuthRoute: AuthRoute,
   BrowserRoute: BrowserRoute,
   ContactRoute: ContactRoute,
+  GamesRoute: GamesRoute,
+  MoviesRoute: MoviesRoute,
   ProxyRoute: ProxyRoute,
+  YoutubeRoute: YoutubeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
