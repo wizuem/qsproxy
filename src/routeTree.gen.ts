@@ -12,12 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as AppsRouteImport } from './routes/apps'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as BrowserRouteImport } from './routes/browser'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as GamesRouteImport } from './routes/games'
 import { Route as MoviesRouteImport } from './routes/movies'
-import { Route as ProxyRouteImport } from './routes/proxy'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as YoutubeRouteImport } from './routes/youtube'
 
@@ -36,16 +33,6 @@ const AppsRoute = AppsRouteImport.update({
   path: '/apps',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BrowserRoute = BrowserRouteImport.update({
-  id: '/browser',
-  path: '/browser',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -59,11 +46,6 @@ const GamesRoute = GamesRouteImport.update({
 const MoviesRoute = MoviesRouteImport.update({
   id: '/movies',
   path: '/movies',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProxyRoute = ProxyRouteImport.update({
-  id: '/proxy',
-  path: '/proxy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -81,12 +63,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/apps': typeof AppsRoute
-  '/auth': typeof AuthRoute
-  '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
   '/games': typeof GamesRoute
   '/movies': typeof MoviesRoute
-  '/proxy': typeof ProxyRoute
   '/settings': typeof SettingsRoute
   '/youtube': typeof YoutubeRoute
 }
@@ -94,12 +73,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/apps': typeof AppsRoute
-  '/auth': typeof AuthRoute
-  '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
   '/games': typeof GamesRoute
   '/movies': typeof MoviesRoute
-  '/proxy': typeof ProxyRoute
   '/settings': typeof SettingsRoute
   '/youtube': typeof YoutubeRoute
 }
@@ -108,12 +84,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/apps': typeof AppsRoute
-  '/auth': typeof AuthRoute
-  '/browser': typeof BrowserRoute
   '/contact': typeof ContactRoute
   '/games': typeof GamesRoute
   '/movies': typeof MoviesRoute
-  '/proxy': typeof ProxyRoute
   '/settings': typeof SettingsRoute
   '/youtube': typeof YoutubeRoute
 }
@@ -123,12 +96,9 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/apps'
-    | '/auth'
-    | '/browser'
     | '/contact'
     | '/games'
     | '/movies'
-    | '/proxy'
     | '/settings'
     | '/youtube'
   fileRoutesByTo: FileRoutesByTo
@@ -136,12 +106,9 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/apps'
-    | '/auth'
-    | '/browser'
     | '/contact'
     | '/games'
     | '/movies'
-    | '/proxy'
     | '/settings'
     | '/youtube'
   id:
@@ -149,12 +116,9 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/apps'
-    | '/auth'
-    | '/browser'
     | '/contact'
     | '/games'
     | '/movies'
-    | '/proxy'
     | '/settings'
     | '/youtube'
   fileRoutesById: FileRoutesById
@@ -163,12 +127,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   AppsRoute: typeof AppsRoute
-  AuthRoute: typeof AuthRoute
-  BrowserRoute: typeof BrowserRoute
   ContactRoute: typeof ContactRoute
   GamesRoute: typeof GamesRoute
   MoviesRoute: typeof MoviesRoute
-  ProxyRoute: typeof ProxyRoute
   SettingsRoute: typeof SettingsRoute
   YoutubeRoute: typeof YoutubeRoute
 }
@@ -196,20 +157,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/browser': {
-      id: '/browser'
-      path: '/browser'
-      fullPath: '/browser'
-      preLoaderRoute: typeof BrowserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -229,13 +176,6 @@ declare module '@tanstack/react-router' {
       path: '/movies'
       fullPath: '/movies'
       preLoaderRoute: typeof MoviesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proxy': {
-      id: '/proxy'
-      path: '/proxy'
-      fullPath: '/proxy'
-      preLoaderRoute: typeof ProxyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -259,12 +199,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   AppsRoute: AppsRoute,
-  AuthRoute: AuthRoute,
-  BrowserRoute: BrowserRoute,
   ContactRoute: ContactRoute,
   GamesRoute: GamesRoute,
   MoviesRoute: MoviesRoute,
-  ProxyRoute: ProxyRoute,
   SettingsRoute: SettingsRoute,
   YoutubeRoute: YoutubeRoute,
 }
