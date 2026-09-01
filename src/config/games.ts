@@ -82,5 +82,13 @@ export const gamesConfig = {
     { label: "Skribbl.io", url: "https://skribbl.io" },
     { label: "Jackbox (browser)", url: "https://jackbox.tv" },
     { label: "GDevelop games", url: "https://gd.games" },
+    { label: "Armor Games", url: "https://armorgames.com" },
+    { label: "Miniclip", url: "https://www.miniclip.com" },
+    { label: "Y8", url: "https://www.y8.com" },
+    { label: "Addicting Games", url: "https://www.addictinggames.com" },
+    { label: "Coolmath Games", url: "https://www.coolmathgames.com" },
+    { label: "Internet Arcade", url: "https://archive.org/details/internetarcade" },
+    { label: "Flashpoint Web", url: "https://flashpointarchive.org" },
+    { label: "Game Jolt", url: "https://gamejolt.com/games" },
   ],
 };
