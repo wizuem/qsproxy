@@ -27,7 +27,7 @@ const FEATURES = [
   { icon: History, title: "History & tabs", text: "Open multiple tabs, go back and forward, revisit anything." },
   { icon: Sparkles, title: "Quantum AI", text: "A built-in assistant for questions, summaries and help." },
   { icon: Maximize2, title: "Fullscreen", text: "Expand the browser to fill your whole screen." },
-  { icon: Expand, title: "Exit guard", text: "Turn on leave confirmation so you never close a session by accident." },
+  { icon: Expand, title: "Shield", text: "Turn on Shield so you must confirm before leaving a session." },
 ];
 
 export function BrowserOnboarding({
@@ -129,7 +129,7 @@ export function BrowserOnboarding({
               <div className="flex flex-wrap gap-2">
                 {!signedIn && (
                   <Button asChild>
-                    <Link to="/auth">Sign in or create an account</Link>
+                    <Link to="/settings">Sign in or create an account</Link>
                   </Button>
                 )}
                 <Button variant="outline" onClick={finish}>
