@@ -65,3 +65,29 @@ export async function fetchTmdb(
       })),
   };
 }
+
+type TmdbVideos = { results?: { key?: string; site?: string; type?: string; official?: boolean }[] };
+
+/** Returns the YouTube key of a title's trailer, or null when none exists. */
+export async function fetchTrailerKey(movieId: number): Promise<string | null> {
+  const key = process.env["TMDB_API_KEY"];
+  if (!key) throw new Error("Movie discovery is not configured yet.");
+
+  const auth = authFor(key);
+  const url = new URL(`https://api.themoviedb.org/3/movie/${movieId}/videos`);
+  if (auth.queryKey) url.searchParams.set("api_key", auth.queryKey);
+
+  const res = await fetch(url, { headers: auth.headers });
+  if (!res.ok) {
+    console.error(`TMDB trailer lookup failed [${res.status}]`);
+    return null;
+  }
+  const json = (await res.json()) as TmdbVideos;
+  const rows = (json.results ?? []).filter((row) => row.site === "YouTube" && row.key);
+  const best =
+    rows.find((row) => row.type === "Trailer" && row.official) ??
+    rows.find((row) => row.type === "Trailer") ??
+    rows.find((row) => row.type === "Teaser") ??
+    rows[0];
+  return best?.key ?? null;
+}

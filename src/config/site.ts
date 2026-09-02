@@ -71,13 +71,32 @@ export const proxyConfig = {
     { id: "bing", label: "Bing", url: "https://www.bing.com/search?q={{query}}" },
     { id: "wikipedia", label: "Wikipedia", url: "https://en.wikipedia.org/w/index.php?search={{query}}" },
   ],
-  /** Privacy-friendly YouTube front-ends used by the YouTube page. */
-  invidiousInstances: [
+  /**
+   * Privacy-friendly YouTube front-ends. The page tries them in order and uses
+   * the first one that answers, so a dead instance never breaks the page.
+   * Piped API hosts (pipedapi.*) and Invidious hosts are both supported.
+   */
+  videoInstances: [
+    "https://api.piped.private.coffee",
+    "https://pipedapi.adminforge.de",
+    "https://pipedapi.drgns.space",
+    "https://pipedapi.reallyaweso.me",
     "https://yewtu.be",
-    "https://inv.nadeko.net",
     "https://invidious.nerdvpn.de",
-    "https://iv.datura.network",
   ],
+  /** Regions offered on the YouTube page. */
+  videoRegions: [
+    { id: "US", label: "United States" },
+    { id: "GB", label: "United Kingdom" },
+    { id: "CA", label: "Canada" },
+    { id: "AU", label: "Australia" },
+    { id: "DE", label: "Germany" },
+    { id: "FR", label: "France" },
+    { id: "JP", label: "Japan" },
+    { id: "IN", label: "India" },
+    { id: "BR", label: "Brazil" },
+  ],
+
   quickLinks: [
     { label: "Quantum AI", url: "", kind: "ai" as const },
     { label: "Discord", url: "https://discord.gg/8SAu3EGQB", kind: "external" as const },
@@ -103,8 +122,27 @@ export const moviesConfig = {
     { id: "scifi_horror", label: "Sci-fi & horror" },
     { id: "classic_cartoons", label: "Classic cartoons" },
     { id: "silent_films", label: "Silent era" },
+    { id: "animationandcartoons", label: "Animation" },
+    { id: "short_films", label: "Short films" },
+    { id: "documentaries", label: "Documentaries" },
+    { id: "sports", label: "Sports films" },
     { id: "moviesandfilms", label: "Everything else" },
   ],
+  /**
+   * Free, ad-supported streaming services with newer catalogues. Opened inside
+   * the Quantum Browser so they play in-app.
+   */
+  freeServices: [
+    { label: "Tubi", url: "https://tubitv.com/home", note: "Thousands of films, free with ads" },
+    { label: "Pluto TV", url: "https://pluto.tv/en/on-demand", note: "On-demand + live channels" },
+    { label: "Plex Free", url: "https://watch.plex.tv/movies", note: "Free movies & shows" },
+    { label: "YouTube Free Movies", url: "https://www.youtube.com/feed/storefront", note: "Studio-licensed free films" },
+    { label: "Kanopy", url: "https://www.kanopy.com", note: "Free with a library card" },
+    { label: "Hoopla", url: "https://www.hoopladigital.com", note: "Free with a library card" },
+    { label: "Crackle", url: "https://www.crackle.com", note: "Free with ads" },
+    { label: "Internet Archive", url: "https://archive.org/details/movies", note: "Public-domain vault" },
+  ],
+
   /** Where "find a legal stream" links point. {{query}} is the film title. */
   legalSearch: "https://www.justwatch.com/us/search?q={{query}}",
 };
