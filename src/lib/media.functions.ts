@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { searchArchive, searchInvidiousApi, trendingInvidiousApi } from "./media.server";
+import { searchArchive, searchVideos, trendingVideos } from "./media.server";
 
 const archiveSchema = z.object({
   collection: z.string().trim().max(80),
@@ -15,13 +15,16 @@ export const fetchArchiveItems = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => archiveSchema.parse(data))
   .handler(async ({ data }) => searchArchive(data));
 
-const invidiousSchema = z.object({
-  instance: z.string().trim().url().max(200),
+const videoSchema = z.object({
+  instances: z.array(z.string().trim().url().max(200)).min(1).max(10),
   query: z.string().trim().max(200).default(""),
+  region: z.string().trim().length(2).default("US"),
 });
 
 export const searchYouTube = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => invidiousSchema.parse(data))
+  .inputValidator((data: unknown) => videoSchema.parse(data))
   .handler(async ({ data }) =>
-    data.query ? searchInvidiousApi(data.instance, data.query) : trendingInvidiousApi(data.instance),
+    data.query
+      ? searchVideos(data.instances, data.query, data.region)
+      : trendingVideos(data.instances, data.region),
   );
