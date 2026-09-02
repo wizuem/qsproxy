@@ -71,13 +71,32 @@ export const proxyConfig = {
     { id: "bing", label: "Bing", url: "https://www.bing.com/search?q={{query}}" },
     { id: "wikipedia", label: "Wikipedia", url: "https://en.wikipedia.org/w/index.php?search={{query}}" },
   ],
-  /** Privacy-friendly YouTube front-ends used by the YouTube page. */
-  invidiousInstances: [
+  /**
+   * Privacy-friendly YouTube front-ends. The page tries them in order and uses
+   * the first one that answers, so a dead instance never breaks the page.
+   * Piped API hosts (pipedapi.*) and Invidious hosts are both supported.
+   */
+  videoInstances: [
+    "https://api.piped.private.coffee",
+    "https://pipedapi.adminforge.de",
+    "https://pipedapi.drgns.space",
+    "https://pipedapi.reallyaweso.me",
     "https://yewtu.be",
-    "https://inv.nadeko.net",
     "https://invidious.nerdvpn.de",
-    "https://iv.datura.network",
   ],
+  /** Regions offered on the YouTube page. */
+  videoRegions: [
+    { id: "US", label: "United States" },
+    { id: "GB", label: "United Kingdom" },
+    { id: "CA", label: "Canada" },
+    { id: "AU", label: "Australia" },
+    { id: "DE", label: "Germany" },
+    { id: "FR", label: "France" },
+    { id: "JP", label: "Japan" },
+    { id: "IN", label: "India" },
+    { id: "BR", label: "Brazil" },
+  ],
+
   quickLinks: [
     { label: "Quantum AI", url: "", kind: "ai" as const },
     { label: "Discord", url: "https://discord.gg/8SAu3EGQB", kind: "external" as const },
