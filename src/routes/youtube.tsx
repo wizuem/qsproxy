@@ -2,13 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, RefreshCw, Search, X } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { useBrowserSettings } from "@/components/browser-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { proxyConfig } from "@/config/site";
 import { searchYouTube } from "@/lib/media.functions";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/youtube")({
   head: () => ({
@@ -23,29 +25,48 @@ export const Route = createFileRoute("/youtube")({
         property: "og:description",
         content: "Search and watch YouTube through a privacy-friendly front-end, with no tracking or ads.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: YouTubePage,
 });
 
+function duration(seconds?: number) {
+  if (!seconds || seconds < 0) return null;
+  const m = Math.floor(seconds / 60);
+  const s = String(seconds % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
+
 function YouTubePage() {
   const search = useServerFn(searchYouTube);
-  const { settings } = useBrowserSettings();
+  const { settings, videoInstances, update } = useBrowserSettings();
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
   const [video, setVideo] = useState<{ id: string; title: string } | null>(null);
 
   const results = useQuery({
-    queryKey: ["youtube", settings.invidiousInstance, query],
-    queryFn: () => search({ data: { instance: settings.invidiousInstance, query } }),
+    queryKey: ["youtube", videoInstances.join(","), settings.videoRegion, query],
+    queryFn: () => search({ data: { instances: videoInstances, query, region: settings.videoRegion } }),
+    retry: 1,
   });
+
+  const playerSrc = (id: string) => {
+    const autoplay = settings.autoplay ? "1" : "0";
+    if (settings.playerMode === "frontend") {
+      const host = videoInstances.find((i) => !/pipedapi|api\.piped|piped-api/.test(i));
+      if (host) return `${host.replace(/\/$/, "")}/embed/${id}?autoplay=${autoplay}`;
+    }
+    return `https://www.youtube-nocookie.com/embed/${id}?autoplay=${autoplay}&rel=0&modestbranding=1`;
+  };
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-6xl px-5 py-8">
         <PageHeader
           title="Quantum YouTube"
-          subtitle="Watch through a privacy-friendly front-end — no ads, no tracking. Change the instance in Settings."
+          subtitle="Watch privately — no account, no tracking cookies. Front-end, region and player are configurable in Settings."
         />
 
         <form
@@ -66,6 +87,30 @@ function YouTubePage() {
           </Button>
         </form>
 
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {proxyConfig.videoRegions.slice(0, 6).map((region) => (
+            <button
+              key={region.id}
+              type="button"
+              onClick={() => update({ videoRegion: region.id })}
+              className={cn(
+                "rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground",
+                settings.videoRegion === region.id && "border-primary bg-primary/10 text-foreground",
+              )}
+            >
+              {region.id}
+            </button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => void results.refetch()}
+          >
+            <RefreshCw className={cn("mr-2 size-3.5", results.isFetching && "animate-spin")} /> Retry
+          </Button>
+        </div>
+
         {results.isPending && (
           <div className="mt-10 flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" /> Loading videos…
@@ -75,7 +120,7 @@ function YouTubePage() {
           <p className="mt-10 text-sm text-destructive">
             {results.error instanceof Error
               ? results.error.message
-              : "This front-end is not responding — try another instance in Settings."}
+              : "No front-end is responding — try another instance in Settings."}
           </p>
         )}
 
@@ -87,12 +132,19 @@ function YouTubePage() {
               onClick={() => setVideo(item)}
               className="surface-card overflow-hidden rounded-2xl text-left transition-colors hover:border-primary"
             >
-              <img
-                src={item.thumb}
-                alt={`${item.title} thumbnail`}
-                loading="lazy"
-                className="h-40 w-full bg-secondary object-cover"
-              />
+              <div className="relative">
+                <img
+                  src={item.thumb}
+                  alt={`${item.title} thumbnail`}
+                  loading="lazy"
+                  className="h-40 w-full bg-secondary object-cover"
+                />
+                {duration(item.lengthSeconds) && (
+                  <span className="absolute bottom-2 right-2 rounded bg-background/85 px-1.5 py-0.5 text-[11px]">
+                    {duration(item.lengthSeconds)}
+                  </span>
+                )}
+              </div>
               <div className="space-y-1 p-4">
                 <h3 className="line-clamp-2 text-sm font-semibold">{item.title}</h3>
                 <p className="text-xs text-muted-foreground">{item.author}</p>
@@ -117,8 +169,9 @@ function YouTubePage() {
           </div>
           <iframe
             title={video.title}
-            src={`${settings.invidiousInstance}/embed/${video.id}`}
-            allow="fullscreen; autoplay"
+            src={playerSrc(video.id)}
+            allow="fullscreen; autoplay; encrypted-media"
+            allowFullScreen
             className="min-h-0 w-full flex-1 rounded-xl border border-border bg-black"
           />
         </div>
