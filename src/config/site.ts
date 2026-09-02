@@ -122,8 +122,27 @@ export const moviesConfig = {
     { id: "scifi_horror", label: "Sci-fi & horror" },
     { id: "classic_cartoons", label: "Classic cartoons" },
     { id: "silent_films", label: "Silent era" },
+    { id: "animationandcartoons", label: "Animation" },
+    { id: "short_films", label: "Short films" },
+    { id: "documentaries", label: "Documentaries" },
+    { id: "sports", label: "Sports films" },
     { id: "moviesandfilms", label: "Everything else" },
   ],
+  /**
+   * Free, ad-supported streaming services with newer catalogues. Opened inside
+   * the Quantum Browser so they play in-app.
+   */
+  freeServices: [
+    { label: "Tubi", url: "https://tubitv.com/home", note: "Thousands of films, free with ads" },
+    { label: "Pluto TV", url: "https://pluto.tv/en/on-demand", note: "On-demand + live channels" },
+    { label: "Plex Free", url: "https://watch.plex.tv/movies", note: "Free movies & shows" },
+    { label: "YouTube Free Movies", url: "https://www.youtube.com/feed/storefront", note: "Studio-licensed free films" },
+    { label: "Kanopy", url: "https://www.kanopy.com", note: "Free with a library card" },
+    { label: "Hoopla", url: "https://www.hoopladigital.com", note: "Free with a library card" },
+    { label: "Crackle", url: "https://www.crackle.com", note: "Free with ads" },
+    { label: "Internet Archive", url: "https://archive.org/details/movies", note: "Public-domain vault" },
+  ],
+
   /** Where "find a legal stream" links point. {{query}} is the film title. */
   legalSearch: "https://www.justwatch.com/us/search?q={{query}}",
 };
