@@ -295,20 +295,51 @@ function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invidious">YouTube front-end</Label>
+            <Label htmlFor="videoInstance">YouTube front-end</Label>
             <select
-              id="invidious"
-              value={settings.invidiousInstance}
-              onChange={(event) => update({ invidiousInstance: event.target.value })}
+              id="videoInstance"
+              value={settings.videoInstance}
+              onChange={(event) => update({ videoInstance: event.target.value })}
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
-              {proxyConfig.invidiousInstances.map((instance) => (
+              <option value="auto">Automatic (try all)</option>
+              {proxyConfig.videoInstances.map((instance) => (
                 <option key={instance} value={instance}>
                   {instance.replace("https://", "")}
                 </option>
               ))}
             </select>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="videoRegion">YouTube region</Label>
+            <select
+              id="videoRegion"
+              value={settings.videoRegion}
+              onChange={(event) => update({ videoRegion: event.target.value })}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {proxyConfig.videoRegions.map((region) => (
+                <option key={region.id} value={region.id}>
+                  {region.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="playerMode">Video player</Label>
+            <select
+              id="playerMode"
+              value={settings.playerMode}
+              onChange={(event) => update({ playerMode: event.target.value as "youtube" | "frontend" })}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="youtube">Privacy YouTube player</option>
+              <option value="frontend">Invidious embed</option>
+            </select>
+          </div>
+
         </section>
 
         <section className="surface-card mt-6 space-y-3 rounded-2xl p-6">
