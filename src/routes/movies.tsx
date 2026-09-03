@@ -1,31 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ExternalLink, Film, Loader2, Play, Search, Star, X } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
+import { useBrowserSettings } from "@/components/browser-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { moviesConfig } from "@/config/site";
 import { fetchArchiveItems } from "@/lib/media.functions";
 import { fetchMovieTrailer, fetchNewReleases } from "@/lib/tmdb.functions";
-import { useBrowserSettings } from "@/components/browser-settings";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/movies")({
   head: () => ({
     meta: [
-      { title: "Quantum Movies — new releases & free classics" },
+      { title: "Quantum Movies — free to watch & new releases" },
       {
         name: "description",
         content:
-          "Browse what's in cinemas and trending now, or watch a huge library of public-domain films right in your browser.",
+          "Watch free films in-app, see what's free to stream this week, play trailers, and browse thousands of free classic movies.",
       },
-      { property: "og:title", content: "Quantum Movies — new releases & free classics" },
+      { property: "og:title", content: "Quantum Movies — free to watch & new releases" },
       {
         property: "og:description",
-        content: "New releases, trending titles and thousands of free public-domain films.",
+        content: "Free-to-watch films, trailers and thousands of free classics, all in one place.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -45,46 +45,81 @@ const FEEDS = [
 
 type Feed = (typeof FEEDS)[number]["id"];
 
+type Playing = { title: string; embed: string };
+
 function legalLink(title: string) {
   return moviesConfig.legalSearch.replace("{{query}}", encodeURIComponent(title));
 }
 
 function MoviesPage() {
-  const [mode, setMode] = useState<"new" | "free">("new");
+  const [playing, setPlaying] = useState<Playing | null>(null);
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-6xl px-5 py-8">
         <PageHeader title={moviesConfig.heading} subtitle={moviesConfig.subheading} />
 
-        <div className="mb-6 inline-flex rounded-full border border-border p-1">
-          {(
-            [
-              { id: "new", label: "New & free to watch" },
-              { id: "free", label: "Free library" },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setMode(tab.id)}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
-                mode === tab.id && "bg-primary/15 text-foreground",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <FreeToWatch onPlay={setPlaying} />
 
-        {mode === "new" ? <NewReleases /> : <FreeLibrary />}
+        <section className="mt-12">
+          <h2 className="font-display text-lg font-semibold">Watch newer films free, in-app</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            These services stream modern, fully licensed movies for free — ad-supported or with a
+            library card.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {moviesConfig.freeServices.map((service) => (
+              <a
+                key={service.label}
+                href={service.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="surface-card flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-secondary/50"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  <Film className="size-4 text-primary" /> {service.label}
+                </span>
+                <span className="text-xs text-muted-foreground">{service.note}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <FreeToPlay onPlay={setPlaying} />
       </div>
+
+      {playing && <PlayerOverlay playing={playing} onClose={() => setPlaying(null)} />}
     </AppShell>
   );
 }
 
-function NewReleases() {
+function PlayerOverlay({ playing, onClose }: { playing: Playing; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[95] flex flex-col bg-background/95 p-3 backdrop-blur-md">
+      <div className="flex items-center gap-3 pb-3">
+        <h2 className="truncate font-display text-sm font-semibold">{playing.title}</h2>
+        <button
+          type="button"
+          aria-label="Close player"
+          onClick={onClose}
+          className="ml-auto rounded-md border border-border p-2 text-muted-foreground hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+      <iframe
+        title={playing.title}
+        src={playing.embed}
+        allow="autoplay; fullscreen; encrypted-media"
+        allowFullScreen
+        className="min-h-0 w-full flex-1 rounded-xl border border-border bg-black"
+      />
+    </div>
+  );
+}
+
+/** TMDB-powered discovery: free-to-watch first, plus cinema/trending feeds. */
+function FreeToWatch({ onPlay }: { onPlay: (playing: Playing) => void }) {
   const load = useServerFn(fetchNewReleases);
   const loadTrailer = useServerFn(fetchMovieTrailer);
   const { settings } = useBrowserSettings();
@@ -92,26 +127,27 @@ function NewReleases() {
   const [feed, setFeed] = useState<Feed>("free_to_watch");
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
-  const [playing, setPlaying] = useState<{ title: string; embed: string } | null>(null);
   const [pendingId, setPendingId] = useState<number | null>(null);
 
-  const results = useQuery({
+  const results = useInfiniteQuery({
     queryKey: ["tmdb", feed, query, region],
-    queryFn: () => load({ data: { feed, query, page: 1, region } }),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => load({ data: { feed, query, page: pageParam as number, region } }),
+    getNextPageParam: (_last, pages) => (pages.length < 10 ? pages.length + 1 : undefined),
   });
+
+  const items = results.data?.pages.flatMap((page) => page.items) ?? [];
 
   const playTrailer = async (id: number, title: string) => {
     setPendingId(id);
     try {
       const { key } = await loadTrailer({ data: { id } });
-      if (!key) {
-        setPlaying(null);
-        return;
+      if (key) {
+        onPlay({
+          title: `${title} — trailer`,
+          embed: `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&rel=0`,
+        });
       }
-      setPlaying({
-        title: `${title} — trailer`,
-        embed: `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&rel=0`,
-      });
     } finally {
       setPendingId(null);
     }
@@ -137,7 +173,7 @@ function NewReleases() {
         </Button>
       </form>
 
-      {!query && (
+      {!query ? (
         <div className="mt-4 flex flex-wrap gap-2">
           {FEEDS.map((item) => (
             <button
@@ -153,9 +189,7 @@ function NewReleases() {
             </button>
           ))}
         </div>
-      )}
-
-      {query && (
+      ) : (
         <button
           type="button"
           onClick={() => {
@@ -170,17 +204,17 @@ function NewReleases() {
 
       {results.isPending && (
         <div className="mt-10 flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Loading new releases…
+          <Loader2 className="size-4 animate-spin" /> Loading films…
         </div>
       )}
       {results.isError && (
         <p className="mt-10 text-sm text-destructive">
-          {results.error instanceof Error ? results.error.message : "Could not load new releases."}
+          {results.error instanceof Error ? results.error.message : "Could not load films."}
         </p>
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {results.data?.items.map((item) => (
+        {items.map((item) => (
           <article key={item.id} className="surface-card flex gap-3 overflow-hidden rounded-2xl p-3">
             {item.poster ? (
               <img
@@ -224,7 +258,7 @@ function NewReleases() {
                   rel="noreferrer noopener"
                   className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <ExternalLink className="size-3.5" /> Where to watch
+                  <ExternalLink className="size-3.5" /> Watch now
                 </a>
               </div>
             </div>
@@ -232,76 +266,56 @@ function NewReleases() {
         ))}
       </div>
 
-      <section className="mt-10">
-        <h2 className="font-display text-lg font-semibold">Watch newer films free, in-app</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          These services stream modern, fully licensed movies for free (ad-supported or with a library
-          card). Open one and it plays right here in Quantum.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {moviesConfig.freeServices.map((service) => (
-            <a
-              key={service.label}
-              href={service.url}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="surface-card flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-secondary/50"
-            >
-              <span className="flex items-center gap-2 text-sm font-semibold">
-                <Film className="size-4 text-primary" /> {service.label}
-              </span>
-              <span className="text-xs text-muted-foreground">{service.note}</span>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {playing && (
-        <div className="fixed inset-0 z-[95] flex flex-col bg-background/95 p-3 backdrop-blur-md">
-          <div className="flex items-center gap-3 pb-3">
-            <h2 className="truncate font-display text-sm font-semibold">{playing.title}</h2>
-            <button
-              type="button"
-              aria-label="Close player"
-              onClick={() => setPlaying(null)}
-              className="ml-auto rounded-md border border-border p-2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-          <iframe
-            title={playing.title}
-            src={playing.embed}
-            allow="autoplay; fullscreen; encrypted-media"
-            allowFullScreen
-            className="min-h-0 w-full flex-1 rounded-xl border border-border bg-black"
-          />
+      {items.length > 0 && results.hasNextPage && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => void results.fetchNextPage()}
+            disabled={results.isFetchingNextPage}
+          >
+            {results.isFetchingNextPage ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : null}
+            Load more films
+          </Button>
         </div>
       )}
     </div>
   );
 }
 
-function FreeLibrary() {
+/** Public-domain library, playable in-app, merged into this page. */
+function FreeToPlay({ onPlay }: { onPlay: (playing: Playing) => void }) {
   const load = useServerFn(fetchArchiveItems);
   const [collection, setCollection] = useState(moviesConfig.collections[0]!.id);
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
-  const [playing, setPlaying] = useState<{ title: string; embed: string } | null>(null);
 
-  const results = useQuery({
+  const results = useInfiniteQuery({
     queryKey: ["archive-movies", collection, query],
-    queryFn: () => load({ data: { collection, query, page: 1, rows: 36, mediatype: "movies" } }),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      load({
+        data: { collection, query, page: pageParam as number, rows: 60, mediatype: "movies" },
+      }),
+    getNextPageParam: (_last, pages) => (pages.length < 20 ? pages.length + 1 : undefined),
   });
 
+  const items = results.data?.pages.flatMap((page) => page.items) ?? [];
+
   return (
-    <div>
+    <section className="mt-12">
+      <h2 className="font-display text-lg font-semibold">Thousands more, free to play right here</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Public-domain and freely licensed films — press play and they stream inside Quantum.
+      </p>
+
       <form
         onSubmit={(event) => {
           event.preventDefault();
           setQuery(term.trim());
         }}
-        className="flex gap-2"
+        className="mt-4 flex gap-2"
       >
         <Input
           value={term}
@@ -342,7 +356,7 @@ function FreeLibrary() {
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {results.data?.items.map((item) => (
+        {items.map((item) => (
           <article key={item.id} className="surface-card overflow-hidden rounded-2xl">
             <img
               src={item.thumb}
@@ -353,35 +367,30 @@ function FreeLibrary() {
             <div className="space-y-2 p-4">
               <h3 className="line-clamp-2 text-sm font-semibold">{item.title}</h3>
               {item.year && <p className="text-xs text-muted-foreground">{item.year}</p>}
-              <Button size="sm" className="w-full" onClick={() => setPlaying(item)}>
-                <Play className="mr-2 size-4" /> Watch
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={() => onPlay({ title: item.title, embed: item.embed })}
+              >
+                <Play className="mr-1.5 size-4" /> Play now
               </Button>
             </div>
           </article>
         ))}
       </div>
 
-      {playing && (
-        <div className="fixed inset-0 z-[95] flex flex-col bg-background/95 p-3 backdrop-blur-md">
-          <div className="flex items-center gap-3 pb-3">
-            <h2 className="truncate font-display text-sm font-semibold">{playing.title}</h2>
-            <button
-              type="button"
-              aria-label="Close player"
-              onClick={() => setPlaying(null)}
-              className="ml-auto rounded-md border border-border p-2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-          <iframe
-            title={playing.title}
-            src={playing.embed}
-            allowFullScreen
-            className="min-h-0 w-full flex-1 rounded-xl border border-border bg-black"
-          />
+      {items.length > 0 && results.hasNextPage && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => void results.fetchNextPage()}
+            disabled={results.isFetchingNextPage}
+          >
+            {results.isFetchingNextPage ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            Load more free films
+          </Button>
         </div>
       )}
-    </div>
+    </section>
   );
 }
