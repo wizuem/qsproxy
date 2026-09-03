@@ -35,7 +35,7 @@ const DEFAULTS: BrowserSettings = {
   blockScripts: true,
   readerMode: false,
   homepage: proxyConfig.homepage,
-  exitGuard: false,
+  exitGuard: true,
   videoInstance: "auto",
   videoRegion: "US",
   playerMode: "youtube",
