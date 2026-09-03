@@ -3,13 +3,20 @@ import { useState } from "react";
 import {
   ArrowRight,
   BookOpen,
+  Clapperboard,
   Expand,
+  Gamepad2,
+  Globe,
   History,
+  LayoutGrid,
+  Mail,
   Maximize2,
   Search,
+  Settings2,
   ShieldCheck,
   Sparkles,
   Star,
+  Youtube,
 } from "lucide-react";
 
 import { themes, useTheme } from "@/components/theme-provider";
@@ -66,7 +73,7 @@ export function BrowserOnboarding({
           <img src={logoAsset.url} alt="" className="size-9 object-contain" />
           <div>
             <h2 className="font-display text-base font-semibold">Welcome to Quantum Browser</h2>
-            <p className="text-xs text-muted-foreground">Step {step + 1} of 3</p>
+            <p className="text-xs text-muted-foreground">Step {step + 1} of 4</p>
           </div>
           <button
             type="button"
@@ -100,6 +107,24 @@ export function BrowserOnboarding({
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
+                Everything lives in the sidebar on the left — no separate website, just one workspace.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {SECTIONS.map((s) => (
+                  <div key={s.title} className="rounded-xl border border-border bg-card/60 p-3">
+                    <p className="flex items-center gap-2 text-xs font-semibold">
+                      <s.icon className="size-4 text-primary" /> {s.title}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{s.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
                 Pick your theme — you can change it any time from the palette button.
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -129,7 +154,7 @@ export function BrowserOnboarding({
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 {signedIn
@@ -159,7 +184,7 @@ export function BrowserOnboarding({
           >
             Back
           </button>
-          {step < 2 ? (
+          {step < 3 ? (
             <Button onClick={() => setStep((s) => s + 1)}>
               Next <ArrowRight className="ml-1 size-4" />
             </Button>
