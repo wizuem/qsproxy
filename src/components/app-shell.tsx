@@ -166,6 +166,21 @@ export function AppShell({
         <main className={cn("min-h-0 flex-1", noScroll ? "flex flex-col overflow-hidden" : "overflow-y-auto")}>
           {children}
         </main>
+        <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-card/40 px-3 py-2">
+          <p className="truncate text-[11px] text-muted-foreground">
+            {settings.exitGuard
+              ? "Shield is on — you'll be asked to confirm before this session closes."
+              : "Shield is off — enable it in Settings to confirm before leaving."}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 border-destructive/50 text-xs text-destructive hover:bg-destructive/10"
+            onClick={() => setConfirmLeave(true)}
+          >
+            Leave page
+          </Button>
+        </div>
       </div>
 
       {confirmLeave && (
