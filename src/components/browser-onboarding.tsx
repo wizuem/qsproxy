@@ -25,9 +25,19 @@ const FEATURES = [
   { icon: BookOpen, title: "Reader mode", text: "Strip layout and ads down to clean, readable text." },
   { icon: Star, title: "Bookmarks", text: "Star any page. Signed in, bookmarks sync to your account." },
   { icon: History, title: "History & tabs", text: "Open multiple tabs, go back and forward, revisit anything." },
+  { icon: Maximize2, title: "Fullscreen", text: "Use the sidebar's fullscreen button to fill your whole screen." },
+  { icon: Expand, title: "Leave page + Shield", text: "The bar at the bottom asks you to confirm before the session closes." },
+];
+
+const SECTIONS = [
+  { icon: Globe, title: "Browser", text: "The private proxy browser — your home screen." },
+  { icon: Clapperboard, title: "Movies", text: "New releases, free-to-watch films, trailers and a huge free classic library you can play in-app." },
+  { icon: Youtube, title: "YouTube", text: "Search and watch videos through privacy-friendly front-ends — pick your region in Settings." },
+  { icon: Gamepad2, title: "Games", text: "Thousands of emulated classics and open-source browser games." },
+  { icon: LayoutGrid, title: "Apps", text: "A launcher of handy sites, tools and our Discord." },
   { icon: Sparkles, title: "Quantum AI", text: "A built-in assistant for questions, summaries and help." },
-  { icon: Maximize2, title: "Fullscreen", text: "Expand the browser to fill your whole screen." },
-  { icon: Expand, title: "Shield", text: "Turn on Shield so you must confirm before leaving a session." },
+  { icon: Mail, title: "Contact", text: "Message us straight from the workspace." },
+  { icon: Settings2, title: "Settings", text: "Themes, proxy engine, search engine, player options, UI scale, Shield and sign-in — all in one place." },
 ];
 
 export function BrowserOnboarding({
