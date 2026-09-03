@@ -3,13 +3,20 @@ import { useState } from "react";
 import {
   ArrowRight,
   BookOpen,
+  Clapperboard,
   Expand,
+  Gamepad2,
+  Globe,
   History,
+  LayoutGrid,
+  Mail,
   Maximize2,
   Search,
+  Settings2,
   ShieldCheck,
   Sparkles,
   Star,
+  Youtube,
 } from "lucide-react";
 
 import { themes, useTheme } from "@/components/theme-provider";
@@ -25,9 +32,19 @@ const FEATURES = [
   { icon: BookOpen, title: "Reader mode", text: "Strip layout and ads down to clean, readable text." },
   { icon: Star, title: "Bookmarks", text: "Star any page. Signed in, bookmarks sync to your account." },
   { icon: History, title: "History & tabs", text: "Open multiple tabs, go back and forward, revisit anything." },
+  { icon: Maximize2, title: "Fullscreen", text: "Use the sidebar's fullscreen button to fill your whole screen." },
+  { icon: Expand, title: "Leave page + Shield", text: "The bar at the bottom asks you to confirm before the session closes." },
+];
+
+const SECTIONS = [
+  { icon: Globe, title: "Browser", text: "The private proxy browser — your home screen." },
+  { icon: Clapperboard, title: "Movies", text: "New releases, free-to-watch films, trailers and a huge free classic library you can play in-app." },
+  { icon: Youtube, title: "YouTube", text: "Search and watch videos through privacy-friendly front-ends — pick your region in Settings." },
+  { icon: Gamepad2, title: "Games", text: "Thousands of emulated classics and open-source browser games." },
+  { icon: LayoutGrid, title: "Apps", text: "A launcher of handy sites, tools and our Discord." },
   { icon: Sparkles, title: "Quantum AI", text: "A built-in assistant for questions, summaries and help." },
-  { icon: Maximize2, title: "Fullscreen", text: "Expand the browser to fill your whole screen." },
-  { icon: Expand, title: "Shield", text: "Turn on Shield so you must confirm before leaving a session." },
+  { icon: Mail, title: "Contact", text: "Message us straight from the workspace." },
+  { icon: Settings2, title: "Settings", text: "Themes, proxy engine, search engine, player options, UI scale, Shield and sign-in — all in one place." },
 ];
 
 export function BrowserOnboarding({
@@ -56,7 +73,7 @@ export function BrowserOnboarding({
           <img src={logoAsset.url} alt="" className="size-9 object-contain" />
           <div>
             <h2 className="font-display text-base font-semibold">Welcome to Quantum Browser</h2>
-            <p className="text-xs text-muted-foreground">Step {step + 1} of 3</p>
+            <p className="text-xs text-muted-foreground">Step {step + 1} of 4</p>
           </div>
           <button
             type="button"
@@ -90,6 +107,24 @@ export function BrowserOnboarding({
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
+                Everything lives in the sidebar on the left — no separate website, just one workspace.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {SECTIONS.map((s) => (
+                  <div key={s.title} className="rounded-xl border border-border bg-card/60 p-3">
+                    <p className="flex items-center gap-2 text-xs font-semibold">
+                      <s.icon className="size-4 text-primary" /> {s.title}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{s.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
                 Pick your theme — you can change it any time from the palette button.
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -119,7 +154,7 @@ export function BrowserOnboarding({
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 {signedIn
@@ -149,7 +184,7 @@ export function BrowserOnboarding({
           >
             Back
           </button>
-          {step < 2 ? (
+          {step < 3 ? (
             <Button onClick={() => setStep((s) => s + 1)}>
               Next <ArrowRight className="ml-1 size-4" />
             </Button>

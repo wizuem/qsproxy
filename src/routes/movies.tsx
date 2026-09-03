@@ -2,14 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ExternalLink, Loader2, Play, Search, Star, X } from "lucide-react";
+import { ExternalLink, Film, Loader2, Play, Search, Star, X } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { moviesConfig } from "@/config/site";
 import { fetchArchiveItems } from "@/lib/media.functions";
-import { fetchNewReleases } from "@/lib/tmdb.functions";
+import { fetchMovieTrailer, fetchNewReleases } from "@/lib/tmdb.functions";
+import { useBrowserSettings } from "@/components/browser-settings";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/movies")({
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/movies")({
 });
 
 const FEEDS = [
+  { id: "free_to_watch", label: "Free to watch" },
   { id: "now_playing", label: "In cinemas" },
   { id: "trending", label: "Trending" },
   { id: "upcoming", label: "Coming soon" },
@@ -58,7 +60,7 @@ function MoviesPage() {
         <div className="mb-6 inline-flex rounded-full border border-border p-1">
           {(
             [
-              { id: "new", label: "New releases" },
+              { id: "new", label: "New & free to watch" },
               { id: "free", label: "Free library" },
             ] as const
           ).map((tab) => (
@@ -84,14 +86,36 @@ function MoviesPage() {
 
 function NewReleases() {
   const load = useServerFn(fetchNewReleases);
-  const [feed, setFeed] = useState<Feed>("now_playing");
+  const loadTrailer = useServerFn(fetchMovieTrailer);
+  const { settings } = useBrowserSettings();
+  const region = settings.movieRegion || "US";
+  const [feed, setFeed] = useState<Feed>("free_to_watch");
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
+  const [playing, setPlaying] = useState<{ title: string; embed: string } | null>(null);
+  const [pendingId, setPendingId] = useState<number | null>(null);
 
   const results = useQuery({
-    queryKey: ["tmdb", feed, query],
-    queryFn: () => load({ data: { feed, query, page: 1 } }),
+    queryKey: ["tmdb", feed, query, region],
+    queryFn: () => load({ data: { feed, query, page: 1, region } }),
   });
+
+  const playTrailer = async (id: number, title: string) => {
+    setPendingId(id);
+    try {
+      const { key } = await loadTrailer({ data: { id } });
+      if (!key) {
+        setPlaying(null);
+        return;
+      }
+      setPlaying({
+        title: `${title} — trailer`,
+        embed: `https://www.youtube-nocookie.com/embed/${key}?autoplay=1&rel=0`,
+      });
+    } finally {
+      setPendingId(null);
+    }
+  };
 
   return (
     <div>
@@ -181,18 +205,79 @@ function NewReleases() {
               {item.overview && (
                 <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{item.overview}</p>
               )}
-              <a
-                href={legalLink(item.title)}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="mt-auto inline-flex items-center gap-1.5 pt-2 text-xs text-primary hover:underline"
-              >
-                <ExternalLink className="size-3.5" /> Where to watch
-              </a>
+              <div className="mt-auto flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => void playTrailer(item.id, item.title)}
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  {pendingId === item.id ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Play className="size-3.5" />
+                  )}
+                  Watch trailer
+                </button>
+                <a
+                  href={legalLink(item.title)}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <ExternalLink className="size-3.5" /> Where to watch
+                </a>
+              </div>
             </div>
           </article>
         ))}
       </div>
+
+      <section className="mt-10">
+        <h2 className="font-display text-lg font-semibold">Watch newer films free, in-app</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          These services stream modern, fully licensed movies for free (ad-supported or with a library
+          card). Open one and it plays right here in Quantum.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {moviesConfig.freeServices.map((service) => (
+            <a
+              key={service.label}
+              href={service.url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="surface-card flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-secondary/50"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Film className="size-4 text-primary" /> {service.label}
+              </span>
+              <span className="text-xs text-muted-foreground">{service.note}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {playing && (
+        <div className="fixed inset-0 z-[95] flex flex-col bg-background/95 p-3 backdrop-blur-md">
+          <div className="flex items-center gap-3 pb-3">
+            <h2 className="truncate font-display text-sm font-semibold">{playing.title}</h2>
+            <button
+              type="button"
+              aria-label="Close player"
+              onClick={() => setPlaying(null)}
+              className="ml-auto rounded-md border border-border p-2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <iframe
+            title={playing.title}
+            src={playing.embed}
+            allow="autoplay; fullscreen; encrypted-media"
+            allowFullScreen
+            className="min-h-0 w-full flex-1 rounded-xl border border-border bg-black"
+          />
+        </div>
+      )}
     </div>
   );
 }
