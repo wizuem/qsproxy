@@ -22,16 +22,52 @@ import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { to: "/", label: "Browser", icon: Globe, exact: true },
-  { to: "/movies", label: "Movies", icon: Clapperboard },
-  { to: "/youtube", label: "YouTube", icon: Youtube },
-  { to: "/games", label: "Games", icon: Gamepad2 },
-  { to: "/apps", label: "Apps", icon: LayoutGrid },
-  { to: "/ai", label: "Quantum AI", icon: Sparkles },
-  { to: "/contact", label: "Contact", icon: Mail },
-  { to: "/settings", label: "Settings", icon: Settings2 },
-] as const;
+export type Section =
+  | "browser"
+  | "movies"
+  | "youtube"
+  | "games"
+  | "apps"
+  | "ai"
+  | "contact"
+  | "settings";
+
+export const navItems = [
+  { id: "browser", label: "Browser", icon: Globe },
+  { id: "movies", label: "Movies", icon: Clapperboard },
+  { id: "youtube", label: "YouTube", icon: Youtube },
+  { id: "games", label: "Games", icon: Gamepad2 },
+  { id: "apps", label: "Apps", icon: LayoutGrid },
+  { id: "ai", label: "Quantum AI", icon: Sparkles },
+  { id: "contact", label: "Contact", icon: Mail },
+  { id: "settings", label: "Settings", icon: Settings2 },
+] as const satisfies readonly { id: Section; label: string; icon: unknown }[];
+
+const WorkspaceContext = createContext<{
+  section: Section;
+  setSection: (section: Section) => void;
+} | null>(null);
+
+export function WorkspaceProvider({
+  section,
+  setSection,
+  children,
+}: {
+  section: Section;
+  setSection: (section: Section) => void;
+  children: ReactNode;
+}) {
+  return (
+    <WorkspaceContext.Provider value={{ section, setSection }}>{children}</WorkspaceContext.Provider>
+  );
+}
+
+export function useWorkspace() {
+  return useContext(WorkspaceContext) ?? { section: "browser" as Section, setSection: () => {} };
+}
+
+/** True when an AppShell is already rendered further up the tree. */
+const NestedShellContext = createContext(false);
 
 export function AppShell({
   children,
@@ -41,6 +77,17 @@ export function AppShell({
   children: ReactNode;
   noScroll?: boolean;
 }) {
+  const nested = useContext(NestedShellContext);
+  if (nested) return <>{children}</>;
+  return (
+    <NestedShellContext.Provider value={true}>
+      <ShellFrame noScroll={noScroll}>{children}</ShellFrame>
+    </NestedShellContext.Provider>
+  );
+}
+
+function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: boolean }) {
+  const { section, setSection } = useWorkspace();
   const { settings } = useBrowserSettings();
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
