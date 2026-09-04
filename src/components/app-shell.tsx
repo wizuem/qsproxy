@@ -100,14 +100,44 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  // Shield: confirm before the session is closed or navigated away from.
   useEffect(() => {
     if (!settings.exitGuard) return;
+
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      event.returnValue = "";
+      event.returnValue = "You have an open Quantum session.";
+      return event.returnValue;
     };
+
+    // Catch same-tab link navigations, which never trigger a native prompt
+    // reliably (and never do inside an embedded frame).
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey) return;
+      const anchor = (event.target as Element | null)?.closest?.("a[href]") as
+        | HTMLAnchorElement
+        | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href") ?? "";
+      if (anchor.target === "_blank" || href.startsWith("#") || href.startsWith("mailto:")) return;
+      let external = false;
+      try {
+        external = new URL(anchor.href, window.location.href).origin !== window.location.origin;
+      } catch {
+        external = false;
+      }
+      if (!external) return;
+      event.preventDefault();
+      setPendingHref(anchor.href);
+      setConfirmLeave(true);
+    };
+
     window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
   }, [settings.exitGuard]);
 
   const toggleFullscreen = () => {
