@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -12,27 +11,6 @@ import { moviesConfig } from "@/config/site";
 import { fetchArchiveItems } from "@/lib/media.functions";
 import { fetchMovieTrailer, fetchNewReleases } from "@/lib/tmdb.functions";
 import { cn } from "@/lib/utils";
-
-export const Route = createFileRoute("/movies")({
-  head: () => ({
-    meta: [
-      { title: "Quantum Movies — free to watch & new releases" },
-      {
-        name: "description",
-        content:
-          "Watch free films in-app, see what's free to stream this week, play trailers, and browse thousands of free classic movies.",
-      },
-      { property: "og:title", content: "Quantum Movies — free to watch & new releases" },
-      {
-        property: "og:description",
-        content: "Free-to-watch films, trailers and thousands of free classics, all in one place.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: MoviesPage,
-});
 
 const FEEDS = [
   { id: "free_to_watch", label: "Free to watch" },
@@ -51,7 +29,7 @@ function legalLink(title: string) {
   return moviesConfig.legalSearch.replace("{{query}}", encodeURIComponent(title));
 }
 
-function MoviesPage() {
+export function MoviesPage() {
   const [playing, setPlaying] = useState<Playing | null>(null);
 
   return (
