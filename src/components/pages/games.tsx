@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -11,26 +10,7 @@ import { gamesConfig } from "@/config/games";
 import { fetchArchiveItems } from "@/lib/media.functions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/games")({
-  head: () => ({
-    meta: [
-      { title: "Quantum Games — thousands of playable classics" },
-      {
-        name: "description",
-        content:
-          "Play thousands of emulated retro games in-browser, plus open-source web games and the best free portals.",
-      },
-      { property: "og:title", content: "Quantum Games — thousands of playable classics" },
-      {
-        property: "og:description",
-        content: "Play emulated retro classics, open-source web games and free portals inside Quantum Services.",
-      },
-    ],
-  }),
-  component: GamesPage,
-});
-
-function GamesPage() {
+export function GamesPage() {
   const load = useServerFn(fetchArchiveItems);
   const [collection, setCollection] = useState(gamesConfig.archiveCollections[0]!.id);
   const [term, setTerm] = useState("");

@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Mail, MapPin } from "lucide-react";
@@ -11,25 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { contactConfig, siteConfig } from "@/config/site";
 import { submitContact } from "@/lib/contact.functions";
 
-export const Route = createFileRoute("/contact")({
-  head: () => ({
-    meta: [
-      { title: "Contact Quantum Services" },
-      {
-        name: "description",
-        content: "Reach the Quantum Services team about proxying, networking or custom builds.",
-      },
-      { property: "og:title", content: "Contact Quantum Services" },
-      {
-        property: "og:description",
-        content: "Reach the Quantum Services team about proxying, networking or custom builds.",
-      },
-    ],
-  }),
-  component: ContactPage,
-});
-
-function ContactPage() {
+export function ContactPage() {
   const send = useServerFn(submitContact);
   const [values, setValues] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { themes, useTheme } from "@/components/theme-provider";
+import { useWorkspace } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/quantum-logo.png.asset.json";
@@ -54,6 +54,7 @@ export function BrowserOnboarding({
   onDone: () => void;
   signedIn: boolean;
 }) {
+  const { setSection } = useWorkspace();
   const { theme, setTheme } = useTheme();
   const [step, setStep] = useState(0);
 
@@ -163,8 +164,13 @@ export function BrowserOnboarding({
               </p>
               <div className="flex flex-wrap gap-2">
                 {!signedIn && (
-                  <Button asChild>
-                    <Link to="/settings">Sign in or create an account</Link>
+                  <Button
+                    onClick={() => {
+                      finish();
+                      setSection("settings");
+                    }}
+                  >
+                    Sign in or create an account
                   </Button>
                 )}
                 <Button variant="outline" onClick={finish}>

@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2, LogIn, LogOut, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -15,25 +14,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { cn } from "@/lib/utils";
-
-export const Route = createFileRoute("/settings")({
-  head: () => ({
-    meta: [
-      { title: "Settings — themes, proxy and account" },
-      {
-        name: "description",
-        content:
-          "Customize your Quantum Services theme, proxy endpoint, search engine, privacy shield and account.",
-      },
-      { property: "og:title", content: "Settings — themes, proxy and account" },
-      {
-        property: "og:description",
-        content: "Customize your theme, proxy endpoint, search engine, privacy shield and account.",
-      },
-    ],
-  }),
-  component: SettingsPage,
-});
 
 function Toggle({
   label,
@@ -193,7 +173,7 @@ function AccountCard() {
   );
 }
 
-function SettingsPage() {
+export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { settings, update, reset } = useBrowserSettings();
 

@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -12,26 +11,6 @@ import { proxyConfig } from "@/config/site";
 import { searchYouTube } from "@/lib/media.functions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/youtube")({
-  head: () => ({
-    meta: [
-      { title: "Quantum YouTube — private video viewing" },
-      {
-        name: "description",
-        content: "Search and watch YouTube through a privacy-friendly front-end, with no tracking or ads.",
-      },
-      { property: "og:title", content: "Quantum YouTube — private video viewing" },
-      {
-        property: "og:description",
-        content: "Search and watch YouTube through a privacy-friendly front-end, with no tracking or ads.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: YouTubePage,
-});
-
 function duration(seconds?: number) {
   if (!seconds || seconds < 0) return null;
   const m = Math.floor(seconds / 60);
@@ -39,7 +18,7 @@ function duration(seconds?: number) {
   return `${m}:${s}`;
 }
 
-function YouTubePage() {
+export function YouTubePage() {
   const search = useServerFn(searchYouTube);
   const { settings, videoInstances, update } = useBrowserSettings();
   const [term, setTerm] = useState("");

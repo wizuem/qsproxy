@@ -1,29 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, MessageCircle } from "lucide-react";
 
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { appsConfig, siteConfig } from "@/config/site";
 
-export const Route = createFileRoute("/apps")({
-  head: () => ({
-    meta: [
-      { title: "Quantum Apps — launch your favourite sites" },
-      {
-        name: "description",
-        content: "A curated directory of web apps for work, learning, music, gaming and community.",
-      },
-      { property: "og:title", content: "Quantum Apps — launch your favourite sites" },
-      {
-        property: "og:description",
-        content: "A curated directory of web apps for work, learning, music, gaming and community.",
-      },
-    ],
-  }),
-  component: AppsPage,
-});
-
-function AppsPage() {
+export function AppsPage() {
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-6xl px-5 py-8">
