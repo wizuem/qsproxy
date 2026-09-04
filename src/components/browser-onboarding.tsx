@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { themes, useTheme } from "@/components/theme-provider";
+import { useWorkspace } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/quantum-logo.png.asset.json";
@@ -53,6 +54,7 @@ export function BrowserOnboarding({
   onDone: () => void;
   signedIn: boolean;
 }) {
+  const { setSection } = useWorkspace();
   const { theme, setTheme } = useTheme();
   const [step, setStep] = useState(0);
 
