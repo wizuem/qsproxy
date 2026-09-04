@@ -5,7 +5,6 @@ import { AppShell, WorkspaceProvider, type Section } from "@/components/app-shel
 import { useBrowserSettings } from "@/components/browser-settings";
 import { QuantumBrowser } from "@/components/quantum-browser";
 import { QuantumAI } from "@/components/quantum-ai";
-import { AiPage } from "@/components/pages/ai";
 import { AppsPage } from "@/components/pages/apps";
 import { ContactPage } from "@/components/pages/contact";
 import { GamesPage } from "@/components/pages/games";
@@ -60,6 +59,3 @@ function WorkspacePage() {
     </WorkspaceProvider>
   );
 }
-
-// Keeps AiPage referenced for future use without rendering a nested shell.
-export const __unusedAi = AiPage;
