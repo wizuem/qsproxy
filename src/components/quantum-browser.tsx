@@ -502,12 +502,13 @@ export function QuantumBrowser({ initialUrl }: { initialUrl?: string }) {
                 >
                   Replay tutorial
                 </button>
-                <Link
-                  to="/settings"
+                <button
+                  type="button"
+                  onClick={() => setSection("settings")}
                   className="rounded-full border border-border px-4 py-2 transition-colors hover:border-primary hover:text-foreground"
                 >
                   Browser settings
-                </Link>
+                </button>
               </div>
             </div>
           )}
