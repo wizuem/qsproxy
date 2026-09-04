@@ -162,7 +162,12 @@ export function BrowserOnboarding({
               </p>
               <div className="flex flex-wrap gap-2">
                 {!signedIn && (
-                  <Button asChild>
+                  <Button
+                    onClick={() => {
+                      finish();
+                      setSection("settings");
+                    }}
+                  >
                     Sign in or create an account
                   </Button>
                 )}
