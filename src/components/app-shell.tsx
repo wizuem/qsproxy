@@ -146,17 +146,23 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-2 pb-3">
           {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setOpen(false)}
-              activeOptions={{ exact: Boolean((item as { exact?: boolean }).exact) }}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground"
-              activeProps={{ className: "bg-secondary text-foreground" }}
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                setSection(item.id);
+                setOpen(false);
+              }}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-secondary/70 hover:text-foreground",
+                section === item.id
+                  ? "bg-secondary text-foreground"
+                  : "text-muted-foreground",
+              )}
             >
               <item.icon className="size-4 shrink-0" />
               {item.label}
-            </Link>
+            </button>
           ))}
         </nav>
 
