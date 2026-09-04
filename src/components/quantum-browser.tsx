@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -24,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { useWorkspace } from "@/components/app-shell";
 import { BrowserOnboarding, ONBOARDING_KEY } from "@/components/browser-onboarding";
 import { QuantumAI } from "@/components/quantum-ai";
 import { useBrowserSettings } from "@/components/browser-settings";
@@ -87,6 +87,7 @@ export function QuantumBrowser({ initialUrl }: { initialUrl?: string }) {
   const [tabs, setTabs] = useState<Tab[]>(() => [newTab(initialUrl ?? "")]);
   const [activeId, setActiveId] = useState<string>(() => "");
   const [panel, setPanel] = useState<"none" | "bookmarks" | "history" | "ai">("none");
+  const { setSection } = useWorkspace();
   const [view, setView] = useState<"page" | "source">("page");
   const [zoom, setZoom] = useState(100);
   const [showTutorial, setShowTutorial] = useState(false);

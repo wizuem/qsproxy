@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -164,7 +163,7 @@ export function BrowserOnboarding({
               <div className="flex flex-wrap gap-2">
                 {!signedIn && (
                   <Button asChild>
-                    <Link to="/settings">Sign in or create an account</Link>
+                    Sign in or create an account
                   </Button>
                 )}
                 <Button variant="outline" onClick={finish}>
