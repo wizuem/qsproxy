@@ -1,9 +1,9 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ExternalLink, Gamepad2, Loader2, Search, X } from "lucide-react";
+import { ArrowUpRight, Gamepad2, Loader2, Search, X } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { AppShell, PageHeader, useWorkspace } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { gamesConfig } from "@/config/games";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 export function GamesPage() {
   const load = useServerFn(fetchArchiveItems);
+  const { openInBrowser } = useWorkspace();
   const [collection, setCollection] = useState(gamesConfig.archiveCollections[0]!.id);
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
@@ -95,17 +96,16 @@ export function GamesPage() {
           <h2 className="font-display text-lg font-semibold">Web games</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {gamesConfig.openSourceGames.map((game) => (
-              <a
+              <button
                 key={game.label}
-                href={game.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="surface-card flex items-center gap-3 rounded-xl p-4 transition-colors hover:border-primary"
+                type="button"
+                onClick={() => openInBrowser(game.url)}
+                className="surface-card flex items-center gap-3 rounded-xl p-4 text-left transition-colors hover:border-primary"
               >
                 <span className="text-sm font-medium">{game.label}</span>
                 <span className="ml-auto text-[11px] text-muted-foreground">{game.tag}</span>
-                <ExternalLink className="size-3.5 text-muted-foreground" />
-              </a>
+                <ArrowUpRight className="size-3.5 text-muted-foreground" />
+              </button>
             ))}
           </div>
         </section>
@@ -114,15 +114,14 @@ export function GamesPage() {
           <h2 className="font-display text-lg font-semibold">Game portals</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {gamesConfig.portals.map((portal) => (
-              <a
+              <button
                 key={portal.label}
-                href={portal.url}
-                target="_blank"
-                rel="noreferrer noopener"
+                type="button"
+                onClick={() => openInBrowser(portal.url)}
                 className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
               >
                 {portal.label}
-              </a>
+              </button>
             ))}
           </div>
         </section>
