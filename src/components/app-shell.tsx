@@ -46,24 +46,35 @@ export const navItems = [
 const WorkspaceContext = createContext<{
   section: Section;
   setSection: (section: Section) => void;
+  openInBrowser: (url: string) => void;
 } | null>(null);
 
 export function WorkspaceProvider({
   section,
   setSection,
+  openInBrowser,
   children,
 }: {
   section: Section;
   setSection: (section: Section) => void;
+  openInBrowser: (url: string) => void;
   children: ReactNode;
 }) {
   return (
-    <WorkspaceContext.Provider value={{ section, setSection }}>{children}</WorkspaceContext.Provider>
+    <WorkspaceContext.Provider value={{ section, setSection, openInBrowser }}>
+      {children}
+    </WorkspaceContext.Provider>
   );
 }
 
 export function useWorkspace() {
-  return useContext(WorkspaceContext) ?? { section: "browser" as Section, setSection: () => {} };
+  return (
+    useContext(WorkspaceContext) ?? {
+      section: "browser" as Section,
+      setSection: () => {},
+      openInBrowser: () => {},
+    }
+  );
 }
 
 /** True when an AppShell is already rendered further up the tree. */
