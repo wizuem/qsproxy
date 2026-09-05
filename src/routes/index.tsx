@@ -36,6 +36,8 @@ function WorkspacePage() {
   const { settings } = useBrowserSettings();
   const [section, setSection] = useState<Section>("browser");
   const [started, setStarted] = useState(false);
+  const [browserUrl, setBrowserUrl] = useState("");
+  const [browserKey, setBrowserKey] = useState(0);
 
   // Honour the configured start page on first mount only.
   useEffect(() => {
@@ -44,10 +46,19 @@ function WorkspacePage() {
     if (settings.startPage) setSection(settings.startPage as Section);
   }, [settings.startPage, started]);
 
+  /** Opens any destination inside the Quantum Browser instead of a new tab. */
+  const openInBrowser = (url: string) => {
+    setBrowserUrl(url);
+    setBrowserKey((value) => value + 1);
+    setSection("browser");
+  };
+
   return (
-    <WorkspaceProvider section={section} setSection={setSection}>
+    <WorkspaceProvider section={section} setSection={setSection} openInBrowser={openInBrowser}>
       <AppShell noScroll={FULL_HEIGHT.includes(section)}>
-        {section === "browser" && <QuantumBrowser />}
+        {section === "browser" && (
+          <QuantumBrowser key={browserKey} {...(browserUrl ? { initialUrl: browserUrl } : {})} />
+        )}
         {section === "ai" && <QuantumAI className="h-full" />}
         {section === "movies" && <MoviesPage />}
         {section === "youtube" && <YouTubePage />}

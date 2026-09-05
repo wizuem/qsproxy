@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import logoAsset from "@/assets/quantum-logo.png.asset.json";
+import logoUrl from "@/assets/quantum-logo.png";
 import { useBrowserSettings } from "@/components/browser-settings";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -46,24 +46,35 @@ export const navItems = [
 const WorkspaceContext = createContext<{
   section: Section;
   setSection: (section: Section) => void;
+  openInBrowser: (url: string) => void;
 } | null>(null);
 
 export function WorkspaceProvider({
   section,
   setSection,
+  openInBrowser,
   children,
 }: {
   section: Section;
   setSection: (section: Section) => void;
+  openInBrowser: (url: string) => void;
   children: ReactNode;
 }) {
   return (
-    <WorkspaceContext.Provider value={{ section, setSection }}>{children}</WorkspaceContext.Provider>
+    <WorkspaceContext.Provider value={{ section, setSection, openInBrowser }}>
+      {children}
+    </WorkspaceContext.Provider>
   );
 }
 
 export function useWorkspace() {
-  return useContext(WorkspaceContext) ?? { section: "browser" as Section, setSection: () => {} };
+  return (
+    useContext(WorkspaceContext) ?? {
+      section: "browser" as Section,
+      setSection: () => {},
+      openInBrowser: () => {},
+    }
+  );
 }
 
 /** True when an AppShell is already rendered further up the tree. */
@@ -87,11 +98,12 @@ export function AppShell({
 }
 
 function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: boolean }) {
-  const { section, setSection } = useWorkspace();
+  const { section, setSection, openInBrowser } = useWorkspace();
   const { settings } = useBrowserSettings();
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -160,7 +172,7 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
         )}
       >
         <div className="flex items-center gap-2 px-4 py-4">
-          <img src={logoAsset.url} alt="Quantum Services logo" className="size-9 object-contain" />
+          <img src={logoUrl} alt="Quantum Services logo" className="size-9 object-contain" />
           <span className="font-display text-sm font-semibold leading-tight">
             Quantum <span className="text-nebula">Services</span>
           </span>
@@ -197,14 +209,16 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
         </nav>
 
         <div className="space-y-2 border-t border-border/60 p-3">
-          <a
-            href={siteConfig.discordInvite}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          <button
+            type="button"
+            onClick={() => {
+              openInBrowser(siteConfig.discordInvite);
+              setOpen(false);
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             <MessageCircle className="size-4" /> Join our Discord
-          </a>
+          </button>
           <button
             type="button"
             onClick={toggleFullscreen}
@@ -273,14 +287,21 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
               Your open tabs and current session will be closed.
             </p>
             <div className="mt-5 flex justify-center gap-2">
-              <Button variant="outline" onClick={() => setConfirmLeave(false)}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfirmLeave(false);
+                  setPendingHref(null);
+                }}
+              >
                 Stay here
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => {
                   setConfirmLeave(false);
-                  window.location.href = "about:blank";
+                  window.location.href = pendingHref ?? "about:blank";
+                  setPendingHref(null);
                 }}
               >
                 Yes, leave

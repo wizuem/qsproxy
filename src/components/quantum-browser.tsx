@@ -34,7 +34,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchThroughProxy } from "@/lib/proxy.functions";
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/quantum-logo.png.asset.json";
+import logoUrl from "@/assets/quantum-logo.png";
 
 type Result = Awaited<ReturnType<typeof fetchThroughProxy>>;
 
@@ -465,7 +465,7 @@ export function QuantumBrowser({ initialUrl }: { initialUrl?: string }) {
           {!activeTab.result && !activeTab.error && (
             <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
               <img
-                src={logoAsset.url}
+                src={logoUrl}
                 alt="Quantum Services logo"
                 className="glow-ring size-20 rounded-full bg-card/40 object-contain p-1 ring-1 ring-border/60"
               />
@@ -551,14 +551,7 @@ export function QuantumBrowser({ initialUrl }: { initialUrl?: string }) {
               </span>
             )}
             <span>Zoom {zoom}%</span>
-            <a
-              href={activeTab.result.finalUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="ml-auto flex items-center gap-1 hover:text-foreground"
-            >
-              Open original <ExternalLink className="size-3" />
-            </a>
+            <span className="ml-auto truncate">Rendered in Quantum</span>
           </>
         ) : (
           <span>Ready · {presetLabel}</span>
