@@ -208,14 +208,16 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
         </nav>
 
         <div className="space-y-2 border-t border-border/60 p-3">
-          <a
-            href={siteConfig.discordInvite}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          <button
+            type="button"
+            onClick={() => {
+              openInBrowser(siteConfig.discordInvite);
+              setOpen(false);
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             <MessageCircle className="size-4" /> Join our Discord
-          </a>
+          </button>
           <button
             type="button"
             onClick={toggleFullscreen}
