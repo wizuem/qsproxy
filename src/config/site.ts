@@ -114,7 +114,7 @@ export const proxyConfig = {
 export const moviesConfig = {
   heading: "Quantum Movies",
   subheading:
-    "Stream a huge library of public-domain classics right here, or look up any film and jump to a legal stream.",
+    "Newer kids, family and teen films from 2020 onwards, plus thousands of free classics — everything plays right here inside Quantum.",
   /** Internet Archive collections used for the free, in-app library. */
   collections: [
     { id: "feature_films", label: "Feature films" },
@@ -128,23 +128,12 @@ export const moviesConfig = {
     { id: "sports", label: "Sports films" },
     { id: "moviesandfilms", label: "Everything else" },
   ],
-  /**
-   * Free, ad-supported streaming services with newer catalogues. Opened inside
-   * the Quantum Browser so they play in-app.
-   */
-  freeServices: [
-    { label: "Tubi", url: "https://tubitv.com/home", note: "Thousands of films, free with ads" },
-    { label: "Pluto TV", url: "https://pluto.tv/en/on-demand", note: "On-demand + live channels" },
-    { label: "Plex Free", url: "https://watch.plex.tv/movies", note: "Free movies & shows" },
-    { label: "YouTube Free Movies", url: "https://www.youtube.com/feed/storefront", note: "Studio-licensed free films" },
-    { label: "Kanopy", url: "https://www.kanopy.com", note: "Free with a library card" },
-    { label: "Hoopla", url: "https://www.hoopladigital.com", note: "Free with a library card" },
-    { label: "Crackle", url: "https://www.crackle.com", note: "Free with ads" },
-    { label: "Internet Archive", url: "https://archive.org/details/movies", note: "Public-domain vault" },
-  ],
 
-  /** Where "find a legal stream" links point. {{query}} is the film title. */
-  legalSearch: "https://www.justwatch.com/us/search?q={{query}}",
+  /**
+   * Where "Watch free" opens inside the Quantum Browser. {{query}} is the
+   * film title — Tubi streams full films free with ads.
+   */
+  watchSearch: "https://tubitv.com/search/{{query}}",
 };
 
 /** Apps page — categorised links, opened inside the Quantum Browser. */

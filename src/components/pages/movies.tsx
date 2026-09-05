@@ -1,9 +1,9 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ExternalLink, Film, Loader2, Play, Search, Star, X } from "lucide-react";
+import { Loader2, Play, Search, Star, Tv, X } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { AppShell, PageHeader, useWorkspace } from "@/components/app-shell";
 import { useBrowserSettings } from "@/components/browser-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,20 +13,20 @@ import { fetchMovieTrailer, fetchNewReleases } from "@/lib/tmdb.functions";
 import { cn } from "@/lib/utils";
 
 const FEEDS = [
+  { id: "kids_new", label: "Kids (2020+)" },
+  { id: "family_new", label: "Family" },
+  { id: "teens_new", label: "Teens" },
+  { id: "animation_new", label: "Animation" },
   { id: "free_to_watch", label: "Free to watch" },
-  { id: "now_playing", label: "In cinemas" },
-  { id: "trending", label: "Trending" },
-  { id: "upcoming", label: "Coming soon" },
-  { id: "popular", label: "Popular" },
-  { id: "top_rated", label: "Top rated" },
+  { id: "trending", label: "Popular now" },
 ] as const;
 
 type Feed = (typeof FEEDS)[number]["id"];
 
 type Playing = { title: string; embed: string };
 
-function legalLink(title: string) {
-  return moviesConfig.legalSearch.replace("{{query}}", encodeURIComponent(title));
+function watchLink(title: string) {
+  return moviesConfig.watchSearch.replace("{{query}}", encodeURIComponent(title));
 }
 
 export function MoviesPage() {
@@ -38,30 +38,6 @@ export function MoviesPage() {
         <PageHeader title={moviesConfig.heading} subtitle={moviesConfig.subheading} />
 
         <FreeToWatch onPlay={setPlaying} />
-
-        <section className="mt-12">
-          <h2 className="font-display text-lg font-semibold">Watch newer films free, in-app</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            These services stream modern, fully licensed movies for free — ad-supported or with a
-            library card.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {moviesConfig.freeServices.map((service) => (
-              <a
-                key={service.label}
-                href={service.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="surface-card flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-secondary/50"
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold">
-                  <Film className="size-4 text-primary" /> {service.label}
-                </span>
-                <span className="text-xs text-muted-foreground">{service.note}</span>
-              </a>
-            ))}
-          </div>
-        </section>
 
         <FreeToPlay onPlay={setPlaying} />
       </div>
@@ -101,8 +77,9 @@ function FreeToWatch({ onPlay }: { onPlay: (playing: Playing) => void }) {
   const load = useServerFn(fetchNewReleases);
   const loadTrailer = useServerFn(fetchMovieTrailer);
   const { settings } = useBrowserSettings();
+  const { openInBrowser } = useWorkspace();
   const region = settings.movieRegion || "US";
-  const [feed, setFeed] = useState<Feed>("free_to_watch");
+  const [feed, setFeed] = useState<Feed>("kids_new");
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
   const [pendingId, setPendingId] = useState<number | null>(null);
@@ -230,14 +207,13 @@ function FreeToWatch({ onPlay }: { onPlay: (playing: Playing) => void }) {
                   )}
                   Watch trailer
                 </button>
-                <a
-                  href={legalLink(item.title)}
-                  target="_blank"
-                  rel="noreferrer noopener"
+                <button
+                  type="button"
+                  onClick={() => openInBrowser(watchLink(item.title))}
                   className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <ExternalLink className="size-3.5" /> Watch now
-                </a>
+                  <Tv className="size-3.5" /> Watch free
+                </button>
               </div>
             </div>
           </article>
