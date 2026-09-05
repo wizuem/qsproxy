@@ -98,7 +98,7 @@ export function AppShell({
 }
 
 function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: boolean }) {
-  const { section, setSection } = useWorkspace();
+  const { section, setSection, openInBrowser } = useWorkspace();
   const { settings } = useBrowserSettings();
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
