@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import logoAsset from "@/assets/quantum-logo.png.asset.json";
+import logoUrl from "@/assets/quantum-logo.png";
 import { useBrowserSettings } from "@/components/browser-settings";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -160,7 +160,7 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
         )}
       >
         <div className="flex items-center gap-2 px-4 py-4">
-          <img src={logoAsset.url} alt="Quantum Services logo" className="size-9 object-contain" />
+          <img src={logoUrl} alt="Quantum Services logo" className="size-9 object-contain" />
           <span className="font-display text-sm font-semibold leading-tight">
             Quantum <span className="text-nebula">Services</span>
           </span>

@@ -22,7 +22,7 @@ import { themes, useTheme } from "@/components/theme-provider";
 import { useWorkspace } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/quantum-logo.png.asset.json";
+import logoUrl from "@/assets/quantum-logo.png";
 
 export const ONBOARDING_KEY = "quantum-browser-onboarded";
 
@@ -71,7 +71,7 @@ export function BrowserOnboarding({
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-background/90 p-4 backdrop-blur-md">
       <div className="surface-card glow-ring w-full max-w-2xl overflow-hidden rounded-2xl">
         <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-          <img src={logoAsset.url} alt="" className="size-9 object-contain" />
+          <img src={logoUrl} alt="" className="size-9 object-contain" />
           <div>
             <h2 className="font-display text-base font-semibold">Welcome to Quantum Browser</h2>
             <p className="text-xs text-muted-foreground">Step {step + 1} of 4</p>
