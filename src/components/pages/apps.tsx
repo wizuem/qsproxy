@@ -1,10 +1,12 @@
-import { ExternalLink, MessageCircle } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 
-import { AppShell, PageHeader } from "@/components/app-shell";
+import { AppShell, PageHeader, useWorkspace } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { appsConfig, siteConfig } from "@/config/site";
 
 export function AppsPage() {
+  const { openInBrowser } = useWorkspace();
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-6xl px-5 py-8">
@@ -15,10 +17,8 @@ export function AppsPage() {
             <h2 className="font-display text-base font-semibold">Join the Quantum Discord</h2>
             <p className="text-sm text-muted-foreground">Requests, updates and support from the team.</p>
           </div>
-          <Button asChild className="sm:ml-auto">
-            <a href={siteConfig.discordInvite} target="_blank" rel="noreferrer noopener">
-              <MessageCircle className="mr-2 size-4" /> Join our Discord
-            </a>
+          <Button className="sm:ml-auto" onClick={() => openInBrowser(siteConfig.discordInvite)}>
+            <MessageCircle className="mr-2 size-4" /> Join our Discord
           </Button>
         </div>
 
@@ -27,19 +27,18 @@ export function AppsPage() {
             <h2 className="font-display text-lg font-semibold">{category.label}</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {category.apps.map((app) => (
-                <a
+                <button
                   key={app.label}
-                  href={app.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="surface-card rounded-xl p-4 transition-colors hover:border-primary"
+                  type="button"
+                  onClick={() => openInBrowser(app.url)}
+                  className="surface-card rounded-xl p-4 text-left transition-colors hover:border-primary"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{app.label}</span>
-                    <ExternalLink className="ml-auto size-3.5 text-muted-foreground" />
+                    <ArrowUpRight className="ml-auto size-3.5 text-muted-foreground" />
                   </div>
                   {app.note && <p className="mt-1 text-xs text-muted-foreground">{app.note}</p>}
-                </a>
+                </button>
               ))}
             </div>
           </section>
