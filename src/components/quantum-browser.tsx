@@ -551,14 +551,7 @@ export function QuantumBrowser({ initialUrl }: { initialUrl?: string }) {
               </span>
             )}
             <span>Zoom {zoom}%</span>
-            <a
-              href={activeTab.result.finalUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="ml-auto flex items-center gap-1 hover:text-foreground"
-            >
-              Open original <ExternalLink className="size-3" />
-            </a>
+            <span className="ml-auto truncate">Rendered in Quantum</span>
           </>
         ) : (
           <span>Ready · {presetLabel}</span>

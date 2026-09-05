@@ -57,7 +57,7 @@ function WorkspacePage() {
     <WorkspaceProvider section={section} setSection={setSection} openInBrowser={openInBrowser}>
       <AppShell noScroll={FULL_HEIGHT.includes(section)}>
         {section === "browser" && (
-          <QuantumBrowser key={browserKey} initialUrl={browserUrl || undefined} />
+          <QuantumBrowser key={browserKey} {...(browserUrl ? { initialUrl: browserUrl } : {})} />
         )}
         {section === "ai" && <QuantumAI className="h-full" />}
         {section === "movies" && <MoviesPage />}

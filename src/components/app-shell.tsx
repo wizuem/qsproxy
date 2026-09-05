@@ -103,6 +103,7 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -286,14 +287,21 @@ function ShellFrame({ children, noScroll }: { children: ReactNode; noScroll?: bo
               Your open tabs and current session will be closed.
             </p>
             <div className="mt-5 flex justify-center gap-2">
-              <Button variant="outline" onClick={() => setConfirmLeave(false)}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfirmLeave(false);
+                  setPendingHref(null);
+                }}
+              >
                 Stay here
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => {
                   setConfirmLeave(false);
-                  window.location.href = "about:blank";
+                  window.location.href = pendingHref ?? "about:blank";
+                  setPendingHref(null);
                 }}
               >
                 Yes, leave
